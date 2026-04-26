@@ -72,6 +72,11 @@
 </head>
 <body>
 
+    <!-- Toggle Mute Button -->
+    <button id="muteBtn" class="absolute top-4 left-4 z-[100] text-white text-3xl bg-black/40 w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-sm shadow-lg transition transform hover:scale-110 active:scale-95 cursor-pointer">
+        🔊
+    </button>
+
     <!-- Canvas Utama (Menu dan Game dirender di sini) -->
     <canvas id="gameCanvas"></canvas>
 
@@ -106,6 +111,10 @@
 <script>
     // --- AUDIO SETUP ---
     const swordSound = new Audio('https://github.com/user-attachments/files/27097721/espada-som.mp3');
+    const bgMusic = new Audio('https://github.com/user-attachments/files/27098976/0011.Happy.Ukulele.Whistle.-.AndruLeo.Music.mp3');
+    bgMusic.loop = true;
+    bgMusic.volume = 0.4; // Volume disesuaikan agar tidak menutupi suara pedang
+    let isMusicPlaying = false;
 
     // --- DATA EDUKASI (RIMA PANTUN UNTUK LEVEL MUDAH & SEDANG) ---
     const RHYME_DATA = [
@@ -130,6 +139,33 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
+    // --- MUTE BUTTON LOGIC ---
+    const muteBtn = document.getElementById('muteBtn');
+    muteBtn.addEventListener('click', (e) => {
+        if (bgMusic.muted) {
+            bgMusic.muted = false;
+            muteBtn.innerText = "🔊";
+            if (!isMusicPlaying) {
+                bgMusic.play().catch(err => console.log(err));
+                isMusicPlaying = true;
+            }
+        } else {
+            bgMusic.muted = true;
+            muteBtn.innerText = "🔇";
+        }
+    });
+
+    // Menangani aturan Autoplay Browser (Memutar musik pada interaksi pertama)
+    const startAudio = () => {
+        if (!isMusicPlaying && !bgMusic.muted) {
+            bgMusic.play().then(() => {
+                isMusicPlaying = true;
+            }).catch(err => console.log("Autoplay dicegah browser:", err));
+        }
+    };
+    window.addEventListener('click', startAudio, { once: true });
+    window.addEventListener('touchstart', startAudio, { once: true });
+
     let width, height;
     let gameState = 'menu'; // menu, countdown, playing, gameover
     let gameMode = 'single';
