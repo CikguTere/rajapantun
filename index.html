@@ -407,6 +407,7 @@
     const bgMusic = new Audio('https://github.com/user-attachments/files/27098976/0011.Happy.Ukulele.Whistle.-.AndruLeo.Music.mp3');
     bgMusic.loop = true;
     bgMusic.volume = 0.4;
+    bgMusic.preload = 'auto'; // MEMAKSA AUDIO DILUAR LEBIH AWAL
     let isMusicPlaying = false;
 
     const RHYME_DATA = [
@@ -445,8 +446,8 @@
         }
     };
     startAudio();
-    window.addEventListener('click', startAudio, { once: true });
-    window.addEventListener('touchstart', startAudio, { once: true });
+    document.body.addEventListener('click', startAudio, { once: true });
+    document.body.addEventListener('touchstart', startAudio, { once: true });
 
     let width, height;
     let gameState = 'menu';
@@ -485,6 +486,7 @@
     let draggingItem = null;
     let dragOffsetX = 0;
     let dragOffsetY = 0;
+    let isHardTransitioning = false; // Mencegah crash & pergerakan timer saat transisi
 
     class MenuButton {
         constructor(x, y, w, h, imgSrc, mode) {
@@ -622,6 +624,7 @@
 
     function initHardModeLevel() {
         slots = []; draggables = []; draggingItem = null;
+        isHardTransitioning = false; // Reset perlindungan crash
         
         if(currentPantunIndex >= PANTUN_DATA.length) {
             gameOver(true); 
@@ -649,17 +652,24 @@
     }
 
     function drawHardMode(timestamp) {
-        if (timestamp - lastTimerUpdate > 1000) {
+        // Hentikan timer dan interaksi jika sedang bertransisi agar tidak crash
+        if (!isHardTransitioning && timestamp - lastTimerUpdate > 1000) {
             hardModeTimer--; lastTimerUpdate = timestamp;
             if (hardModeTimer <= 0) {
                 p1.lives--;
                 createPopup("WAKTU HABIS!", width/2, height/2, '#ef4444');
-                if (p1.lives <= 0) gameOver();
-                else setTimeout(() => { initHardModeLevel(); }, 1000);
+                if (p1.lives <= 0) {
+                    gameOver();
+                } else {
+                    isHardTransitioning = true;
+                    setTimeout(() => { initHardModeLevel(); }, 1000);
+                }
             }
         }
 
         let currentPantun = PANTUN_DATA[currentPantunIndex];
+        if (!currentPantun) return; // Mencegah Error jika indeks melebih kapasitas data
+
         ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         let headerSize = width < 768 ? 20 : 30;
         ctx.font = `bold ${headerSize}px Nunito`; ctx.fillText(`Tema: ${currentPantun.theme}`, width/2, 30);
@@ -700,21 +710,26 @@
     }
 
     function checkHardModeWin() {
+        if (isHardTransitioning) return;
         let isComplete = slots.every(s => s.currentItem !== null);
         if (!isComplete) return;
 
         let isCorrect = slots.every(s => s.currentItem.id === s.expectedId);
         if (isCorrect) {
+            isHardTransitioning = true; // Mengunci agar aman
             p1.score += 200; 
             createPopup("BENAR SEKALI!", width/2, height/2, '#10b981');
-            currentPantunIndex++;
+            
+            // Jeda untuk menampilkan popup tanpa error
             setTimeout(() => {
+                currentPantunIndex++;
                 if (currentPantunIndex >= PANTUN_DATA.length) gameOver(true); 
                 else initHardModeLevel();
             }, 1500);
         } else {
             createPopup("SUSUNAN SALAH!", width/2, height/2, '#ef4444');
             setTimeout(() => {
+                if(isHardTransitioning) return;
                 slots.forEach(s => {
                     if (s.currentItem) {
                         s.currentItem.x = s.currentItem.originX; s.currentItem.y = s.currentItem.originY; s.currentItem = null;
@@ -1017,6 +1032,7 @@
     function handlePointerDown(e) {
         let pos = getPointerPos(e);
         if (gameState === 'playing' && gameMode === 'hard') {
+            if(isHardTransitioning) return;
             for (let i = draggables.length - 1; i >= 0; i--) {
                 let d = draggables[i];
                 if (pos.x > d.x - d.w/2 && pos.x < d.x + d.w/2 && pos.y > d.y - d.h/2 && pos.y < d.y + d.h/2) {
