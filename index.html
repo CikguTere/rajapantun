@@ -88,6 +88,13 @@
         🔊
     </button>
 
+    <!-- Tombol Fullscreen -->
+    <button id="fullscreenBtn" onclick="window.toggleFullScreen()" class="absolute bottom-4 right-4 z-[100] text-white bg-gray-800/60 border-2 border-gray-400 w-12 h-12 flex items-center justify-center rounded-full backdrop-blur-sm shadow-lg transition transform hover:scale-110 active:scale-95 cursor-pointer interactive">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+        </svg>
+    </button>
+
     <!-- Tombol Leaderboard (Hanya muncul di Menu) -->
     <button id="leaderboardBtn" onclick="window.showLeaderboard()" class="absolute top-4 right-4 z-[100] text-white text-3xl bg-yellow-600/80 border-2 border-yellow-400 w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-sm shadow-lg transition transform hover:scale-110 active:scale-95 cursor-pointer interactive">
         🏆
@@ -1103,6 +1110,33 @@
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'; ctx.stroke();
         }
     }
+
+    // Fungsi untuk mode Layar Penuh (Fullscreen)
+    window.toggleFullScreen = () => {
+        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+            // Masuk layar penuh
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) {
+                document.documentElement.msRequestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) {
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+        } else {
+            // Keluar layar penuh
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+    };
 
     canvas.addEventListener('mousedown', handlePointerDown);
     canvas.addEventListener('mousemove', handlePointerMove);
