@@ -100,9 +100,25 @@
             0% { opacity: 0.4; filter: blur(5px); }
             100% { opacity: 0.8; filter: blur(12px); }
         }
+
+        /* Aturan Rotasi Layar (Hanya HP & Tablet: layar sentuh, tanpa kursor mouse, max 1024px) */
+        @media screen and (max-width: 1024px) and (orientation: portrait) and (pointer: coarse) and (hover: none) {
+            #portraitWarning {
+                display: flex !important;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Layar Peringatan Portrait -->
+    <div id="portraitWarning" class="hidden fixed inset-0 bg-gray-900 z-[99999] flex-col items-center justify-center text-center p-6">
+        <svg class="w-32 h-32 text-yellow-400 mb-6 animate-[pulse_2s_ease-in-out_infinite]" style="transform: rotate(90deg);" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+        </svg>
+        <h2 class="text-3xl font-black text-white mb-4 font-['Fredoka_One'] tracking-wide">PUTAR PERANGKAT</h2>
+        <p class="text-xl text-gray-300 font-['Nunito'] max-w-md">Game ini dirancang khusus untuk dimainkan dalam mode <span class="text-yellow-400 font-bold">Landscape (Mendatar)</span>. Mohon putar layar HP atau Tablet Anda.</p>
+    </div>
 
     <!-- Toggle Mute Button -->
     <button id="muteBtn" class="absolute top-4 left-4 z-[100] text-white text-3xl bg-black/40 w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-sm shadow-lg transition transform hover:scale-110 active:scale-95 cursor-pointer interactive">
@@ -1117,17 +1133,31 @@
         }
     }
 
-    window.toggleFullScreen = () => {
+    window.toggleFullScreen = async () => {
+        let docEl = document.documentElement;
         if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
-            if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen(); } 
-            else if (document.documentElement.msRequestFullscreen) { document.documentElement.msRequestFullscreen(); } 
-            else if (document.documentElement.mozRequestFullScreen) { document.documentElement.mozRequestFullScreen(); } 
-            else if (document.documentElement.webkitRequestFullscreen) { document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT); }
+            try {
+                if (docEl.requestFullscreen) { await docEl.requestFullscreen(); } 
+                else if (docEl.msRequestFullscreen) { await docEl.msRequestFullscreen(); } 
+                else if (docEl.mozRequestFullScreen) { await docEl.mozRequestFullScreen(); } 
+                else if (docEl.webkitRequestFullscreen) { await docEl.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT); }
+                
+                // Kunci layar ke mode landscape secara programatik setelah layar penuh aktif
+                if (screen.orientation && screen.orientation.lock) {
+                    await screen.orientation.lock('landscape');
+                }
+            } catch (err) { console.log("Fullscreen/Orientation lock error:", err); }
         } else {
-            if (document.exitFullscreen) { document.exitFullscreen(); } 
-            else if (document.msExitFullscreen) { document.msExitFullscreen(); } 
-            else if (document.mozCancelFullScreen) { document.mozCancelFullScreen(); } 
-            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+            try {
+                if (document.exitFullscreen) { await document.exitFullscreen(); } 
+                else if (document.msExitFullscreen) { await document.msExitFullscreen(); } 
+                else if (document.mozCancelFullScreen) { await document.mozCancelFullScreen(); } 
+                else if (document.webkitExitFullscreen) { await document.webkitExitFullscreen(); }
+                
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            } catch (err) { console.log("Exit Fullscreen error:", err); }
         }
     };
 
