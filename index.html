@@ -17,7 +17,7 @@
             overflow: hidden;
             background-color: #1a202c;
             font-family: 'Fredoka One', cursive;
-            touch-action: none; /* Mencegah scroll pada layar sentuh */
+            touch-action: none;
         }
 
         #gameCanvas {
@@ -27,7 +27,6 @@
             background-size: 100% 100%;
             background-position: center;
             background-repeat: no-repeat;
-            /* Background Awal Menu */
             background-image: url('https://github.com/user-attachments/assets/b7909539-0d15-4536-8a7a-286c487d5fee');
             transition: background-image 0.2s ease-in-out;
         }
@@ -57,7 +56,6 @@
             text-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 20px rgba(236, 72, 153, 0.6);
         }
 
-        /* Animasi Countdown */
         @keyframes countdownBounce {
             0%, 100% { transform: scale(0.8); opacity: 0; }
             50% { transform: scale(1.2); opacity: 1; }
@@ -68,17 +66,90 @@
             color: #fff;
             text-shadow: 0 0 30px rgba(0,0,0,0.8);
         }
+        
+        /* Custom Scrollbar for Leaderboard */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #f59e0b;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
 
     <!-- Toggle Mute Button -->
-    <button id="muteBtn" class="absolute top-4 left-4 z-[100] text-white text-3xl bg-black/40 w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-sm shadow-lg transition transform hover:scale-110 active:scale-95 cursor-pointer">
+    <button id="muteBtn" class="absolute top-4 left-4 z-[100] text-white text-3xl bg-black/40 w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-sm shadow-lg transition transform hover:scale-110 active:scale-95 cursor-pointer interactive">
         🔊
     </button>
 
-    <!-- Canvas Utama (Menu dan Game dirender di sini) -->
+    <!-- Tombol Leaderboard (Hanya muncul di Menu) -->
+    <button id="leaderboardBtn" onclick="window.showLeaderboard()" class="absolute top-4 right-4 z-[100] text-white text-3xl bg-yellow-600/80 border-2 border-yellow-400 w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-sm shadow-lg transition transform hover:scale-110 active:scale-95 cursor-pointer interactive">
+        🏆
+    </button>
+
+    <!-- Canvas Utama -->
     <canvas id="gameCanvas"></canvas>
+
+    <!-- Modal Papan Peringkat (Leaderboard) -->
+    <div id="leaderboardModal" class="ui-layer z-[80] hidden bg-black/80">
+        <div class="bg-gray-900 border-4 border-yellow-500 rounded-2xl p-6 w-[95%] md:w-[600px] max-h-[85vh] flex flex-col shadow-2xl interactive">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-3xl text-yellow-400 title-shadow">Papan Peringkat</h3>
+                <button onclick="window.hideLeaderboard()" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-4">
+                <button onclick="window.changeLeaderboardTab('Ksatria')" id="tabKsatria" class="flex-1 bg-yellow-600 text-white py-2 rounded-lg font-bold transition">⚔️ Ksatria</button>
+                <button onclick="window.changeLeaderboardTab('Putra Mahkota')" id="tabPutraMahkota" class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2 rounded-lg font-bold transition">👑 P. Mahkota</button>
+                <button onclick="window.changeLeaderboardTab('Raja')" id="tabRaja" class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2 rounded-lg font-bold transition">👑 Raja</button>
+            </div>
+
+            <!-- List Data -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                <table class="w-full text-left text-white font-['Nunito']">
+                    <thead>
+                        <tr class="text-gray-400 border-b border-gray-700">
+                            <th class="py-2 w-12 text-center">No</th>
+                            <th class="py-2">Nama & Sekolah</th>
+                            <th class="py-2 text-right">Skor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <!-- Data diisi oleh JavaScript -->
+                        <tr><td colspan="3" class="text-center py-4">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Lencana (Ksatria / Putra Mahkota / Raja) -->
+    <div id="badgeModal" class="ui-layer z-[90] hidden bg-black/90 backdrop-blur-sm">
+        <div class="bg-gradient-to-b from-gray-800 to-gray-900 border-4 border-yellow-500 rounded-3xl p-8 max-w-[90%] md:max-w-md text-center shadow-[0_0_50px_rgba(234,179,8,0.3)] interactive">
+            <div id="badgeIcon" class="text-6xl mb-2 filter drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">⚔️</div>
+            <h3 class="text-3xl text-yellow-400 mb-2 title-shadow">Selamat!</h3>
+            <p id="badgeSubtitle" class="text-white text-lg font-['Nunito'] mb-6">
+                Anda mendapatkan lencana <span id="badgeTierName" class="font-bold text-yellow-300">Ksatria</span> dengan skor <span id="badgeScoreDisplay" class="font-bold text-xl text-green-400">0</span>!
+            </p>
+            
+            <div class="flex flex-col gap-4 mb-6">
+                <input type="text" id="playerName" placeholder="Masukkan Nama Anda" class="w-full px-4 py-3 rounded-xl bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-400 focus:outline-none font-['Nunito']">
+                <input type="text" id="playerSchool" placeholder="Asal Sekolah" class="w-full px-4 py-3 rounded-xl bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-400 focus:outline-none font-['Nunito']">
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="window.skipBadge()" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-3 rounded-xl font-bold transition">Lewati</button>
+                <button onclick="window.submitBadge()" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-green-500/30 transition transform hover:scale-105 active:scale-95">Simpan</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Level Terkunci -->
     <div id="lockedModal" class="ui-layer z-[70] hidden bg-black/80">
@@ -103,20 +174,225 @@
         <h2 id="gameOverTitle" class="text-6xl md:text-7xl text-white mb-6 title-shadow text-center">GAME OVER</h2>
         <p id="gameOverScore" class="text-3xl text-yellow-400 mb-8 font-['Nunito'] text-center">Skor: 0</p>
         
-        <button onclick="backToMenu()" class="text-white text-2xl py-4 px-10 rounded-2xl transition transform hover:scale-105 active:scale-95" style="background-image: url('https://private-user-images.githubusercontent.com/217060870/583846776-468cf861-e122-49dd-829b-001add7d8296.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzcxODg3NDksIm5iZiI6MTc3NzE4ODQ0OSwicGF0aCI6Ii8yMTcwNjA4NzAvNTgzODQ2Nzc2LTQ2OGNmODYxLWUxMjItNDlkZC04MjliLTAwMWFkZDdkODI5Ni5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNDI2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDQyNlQwNzI3MjlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT00YzdlY2I4YjZkMDY1MjcyYTY0ZWI3MTkxYjdkZjQ5NjY5YjVkNzRmOWEzZmVjYzhkNGY4MDgwOWI0OWM4MmI0JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZwbmcifQ.5tzzR7grlRSS51w5p1Sd848BFC0XIheGisXTDAhfr24'); background-size: 100% 100%; background-repeat: no-repeat; background-color: transparent; border: none;">
+        <button onclick="window.backToMenu()" class="text-white text-2xl py-4 px-10 rounded-2xl transition transform hover:scale-105 active:scale-95" style="background-image: url('https://private-user-images.githubusercontent.com/217060870/583846776-468cf861-e122-49dd-829b-001add7d8296.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzcxODg3NDksIm5iZiI6MTc3NzE4ODQ0OSwicGF0aCI6Ii8yMTcwNjA4NzAvNTgzODQ2Nzc2LTQ2OGNmODYxLWUxMjItNDlkZC04MjliLTAwMWFkZDdkODI5Ni5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNDI2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDQyNlQwNzI3MjlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT00YzdlY2I4YjZkMDY1MjcyYTY0ZWI3MTkxYjdkZjQ5NjY5YjVkNzRmOWEzZmVjYzhkNGY4MDgwOWI0OWM4MmI0JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZwbmcifQ.5tzzR7grlRSS51w5p1Sd848BFC0XIheGisXTDAhfr24'); background-size: 100% 100%; background-repeat: no-repeat; background-color: transparent; border: none;">
             Kembali ke Menu
         </button>
     </div>
 
-<script>
+<!-- Ubah script menjadi module untuk Firebase -->
+<script type="module">
+    // --- FIREBASE IMPORTS & SETUP ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Konfigurasi Database Realtime
+    let app, auth, db;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'raja-pantun-app';
+    
+    let leaderboardData = {
+        'Ksatria': [],
+        'Putra Mahkota': [],
+        'Raja': []
+    };
+    let currentLbTab = 'Ksatria';
+
+    try {
+        let firebaseConfig;
+        // Prioritaskan database Canvas jika kita mengujinya di sini
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            firebaseConfig = JSON.parse(__firebase_config);
+        } else {
+            // Gunakan konfigurasi Anda jika dihosting di luar (misal: GitHub Pages)
+            // PASTIKAN Firestore Security Rules diubah menjadi "allow read, write: if true;" untuk tes
+            firebaseConfig = {
+                apiKey: "AIzaSyCDvSQBkSbcROL9AHZnhouOC0OgjaTWQfs",
+                authDomain: "raja-pantun.firebaseapp.com",
+                projectId: "raja-pantun",
+                storageBucket: "raja-pantun.firebasestorage.app",
+                messagingSenderId: "549091274538",
+                appId: "1:549091274538:web:478cad99f8f2a10b49f853"
+            };
+        }
+
+        if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            // Auth Rule 3: Tunggu proses Auth secara sinkron sebelum menyentuh Firestore
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Gagal inisialisasi auth, mencoba login anonim cadangan...", error);
+                    await signInAnonymously(auth).catch(e => console.error("Login anonim gagal:", e));
+                }
+            };
+
+            initAuth().then(() => {
+                // Setup Data Listener (Rule 1 & 2) setelah Auth terverifikasi
+                onAuthStateChanged(auth, (user) => {
+                    if (!user) return;
+
+                    const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+                    onSnapshot(lbRef, (snapshot) => {
+                        let temp = { 'Ksatria': [], 'Putra Mahkota': [], 'Raja': [] };
+                        snapshot.forEach(doc => {
+                            let data = doc.data();
+                            if(temp[data.tier]) temp[data.tier].push(data);
+                        });
+                        
+                        // Sort in memory (Rule 2)
+                        temp['Ksatria'].sort((a,b) => b.score - a.score);
+                        temp['Putra Mahkota'].sort((a,b) => b.score - a.score);
+                        temp['Raja'].sort((a,b) => b.score - a.score);
+                        
+                        leaderboardData = temp;
+                        renderLeaderboard();
+                    }, (error) => {
+                        console.error("Leaderboard read error (pastikan Firestore Security Rules terbuka):", error);
+                    });
+                });
+            });
+        }
+    } catch(e) {
+        console.warn("Database mode offline (Local only).", e);
+    }
+
+    // --- LEADERBOARD UI FUNCTIONS ---
+    window.showLeaderboard = () => {
+        document.getElementById('leaderboardModal').classList.remove('hidden');
+        renderLeaderboard();
+    };
+    window.hideLeaderboard = () => {
+        document.getElementById('leaderboardModal').classList.add('hidden');
+    };
+    window.changeLeaderboardTab = (tab) => {
+        currentLbTab = tab;
+        ['Ksatria', 'Putra Mahkota', 'Raja'].forEach(t => {
+            let btn = document.getElementById('tab' + t.replace(/\s/g, ''));
+            if(t === tab) {
+                btn.className = "flex-1 bg-yellow-600 text-white py-2 rounded-lg font-bold transition";
+            } else {
+                btn.className = "flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2 rounded-lg font-bold transition";
+            }
+        });
+        renderLeaderboard();
+    };
+
+    function renderLeaderboard() {
+        const tbody = document.getElementById('leaderboardBody');
+        tbody.innerHTML = '';
+        
+        let data = leaderboardData[currentLbTab];
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-gray-400">Belum ada pahlawan di tingkat ini.</td></tr>`;
+            return;
+        }
+
+        data.forEach((entry, idx) => {
+            let rankColor = "text-gray-400";
+            if(idx === 0) rankColor = "text-yellow-400 text-xl";
+            else if(idx === 1) rankColor = "text-gray-300 text-lg";
+            else if(idx === 2) rankColor = "text-yellow-600 text-lg";
+
+            let tr = document.createElement('tr');
+            tr.className = "border-b border-gray-700/50";
+            tr.innerHTML = `
+                <td class="py-3 text-center font-bold ${rankColor}">${idx + 1}</td>
+                <td class="py-3">
+                    <div class="font-bold text-white text-lg">${entry.name}</div>
+                    <div class="text-sm text-gray-400">${entry.school}</div>
+                </td>
+                <td class="py-3 text-right font-bold text-green-400 text-xl">${entry.score}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- FORM BADGE SUBMISSION LOGIC ---
+    let pendingBadgeData = null; // { tier, score }
+
+    window.submitBadge = async () => {
+        const name = document.getElementById('playerName').value.trim();
+        const school = document.getElementById('playerSchool').value.trim();
+        
+        if(!name || !school) {
+            alert("Harap isi nama dan asal sekolah Anda!");
+            return;
+        }
+
+        if (db && auth.currentUser && pendingBadgeData) {
+            try {
+                const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+                await addDoc(lbRef, {
+                    tier: pendingBadgeData.tier,
+                    score: pendingBadgeData.score,
+                    name: name,
+                    school: school,
+                    timestamp: Date.now()
+                });
+            } catch(e) {
+                console.error("Gagal menyimpan ke database:", e);
+                alert("Penyimpanan gagal. Jika ini di hosting, pastikan Firestore Rules Anda mengizinkan penulisan.");
+            }
+        }
+        
+        document.getElementById('badgeModal').classList.add('hidden');
+        document.getElementById('gameOverScreen').classList.remove('hidden');
+    };
+
+    window.skipBadge = () => {
+        document.getElementById('badgeModal').classList.add('hidden');
+        document.getElementById('gameOverScreen').classList.remove('hidden');
+    };
+
+    function processBadgeRewards(mode, score, isHardModeWin) {
+        let earnedTier = null;
+        let earnedIcon = "";
+
+        if (mode === 'single' && score >= 200) {
+            earnedTier = "Ksatria";
+            earnedIcon = "⚔️";
+        } else if (mode === 'medium' && score >= 100) {
+            earnedTier = "Putra Mahkota";
+            earnedIcon = "👑 (Perak)";
+        } else if (mode === 'hard' && isHardModeWin) {
+            earnedTier = "Raja";
+            earnedIcon = "👑 (Emas)";
+        }
+
+        if (earnedTier) {
+            pendingBadgeData = { tier: earnedTier, score: score };
+            document.getElementById('badgeTierName').innerText = earnedTier;
+            document.getElementById('badgeScoreDisplay').innerText = score;
+            document.getElementById('badgeIcon').innerText = earnedIcon === "👑 (Perak)" ? "👑" : earnedIcon === "👑 (Emas)" ? "👑" : earnedIcon;
+            
+            // Warna font penyesuaian tier
+            const tierTitle = document.getElementById('badgeTierName');
+            tierTitle.className = "font-bold text-2xl " + 
+                (earnedTier === 'Raja' ? "text-yellow-400" : earnedTier === 'Putra Mahkota' ? "text-gray-300" : "text-orange-400");
+
+            document.getElementById('badgeModal').classList.remove('hidden');
+            return true; // Form ditunjukkan
+        }
+        return false; // Langsung Game Over biasa
+    }
+
+
     // --- AUDIO SETUP ---
     const swordSound = new Audio('https://github.com/user-attachments/files/27097721/espada-som.mp3');
     const bgMusic = new Audio('https://github.com/user-attachments/files/27098976/0011.Happy.Ukulele.Whistle.-.AndruLeo.Music.mp3');
     bgMusic.loop = true;
-    bgMusic.volume = 0.4; // Volume disesuaikan agar tidak menutupi suara pedang
+    bgMusic.volume = 0.4;
     let isMusicPlaying = false;
 
-    // --- DATA EDUKASI (RIMA PANTUN UNTUK LEVEL MUDAH & SEDANG) ---
+    // --- DATA EDUKASI ---
     const RHYME_DATA = [
         { target: "Batu", correct: ["Satu", "Ratu", "Pintu", "Sepatu", "Waktu", "Tentu"], wrong: ["Buku", "Lari", "Makan", "Meja", "Gitar", "Lampu"] },
         { target: "Makan", correct: ["Ikan", "Jalan", "Kawan", "Taman", "Pesan", "Hujan"], wrong: ["Tidur", "Minum", "Baju", "Sepeda", "Kucing", "Pohon"] },
@@ -128,7 +404,6 @@
         { target: "Gitar", correct: ["Pintar", "Bentar", "Lontar", "Getar", "Pudar", "Kekar"], wrong: ["Piano", "Drum", "Suling", "Biola", "Musik", "Lagu"] }
     ];
 
-    // --- DATA EDUKASI (SUSUN PANTUN UNTUK LEVEL SULIT) ---
     const PANTUN_DATA = [
         { theme: "Teka-teki", lines: ["Kalau tuan bawa keladi", "Bawakan juga si pucuk rebung", "Kalau tuan bijak bestari", "Binatang apa tanduk di hidung?"] },
         { theme: "Jenaka", lines: ["Pohon manggis di tepi rawa", "Tempat kakek tidur beradu", "Sedang menangis nenek tertawa", "Melihat kakek bermain gundu"] },
@@ -155,7 +430,6 @@
         }
     });
 
-    // Menangani aturan Autoplay Browser (Memutar musik pada interaksi pertama)
     const startAudio = () => {
         if (!isMusicPlaying && !bgMusic.muted) {
             bgMusic.play().then(() => {
@@ -163,14 +437,14 @@
             }).catch(err => console.log("Autoplay dicegah browser:", err));
         }
     };
+    startAudio();
     window.addEventListener('click', startAudio, { once: true });
     window.addEventListener('touchstart', startAudio, { once: true });
 
     let width, height;
-    let gameState = 'menu'; // menu, countdown, playing, gameover
+    let gameState = 'menu';
     let gameMode = 'single';
     
-    // Variabel Global Level Mudah & Sedang
     let lastTime = 0;
     let spawnTimer = 0;
     let spawnInterval = 2500; 
@@ -183,9 +457,8 @@
     let popups = [];
     let swipes = {};
 
-    const p1 = { xMin: 0, xMax: 0, score: 0, lives: 3, streak: 0, targetWord: "", currentData: null, color: '#3b82f6' };
+    const p1 = { xMin: 0, xMax: 0, score: 0, lives: 3, streak: 0, questionsCompleted: 0, targetWord: "", currentData: null, color: '#3b82f6' };
 
-    // Simpan high score
     let highScoreEasy = parseInt(localStorage.getItem('rajaPantunHighScoreEasy')) || 0;
     let highScoreMedium = parseInt(localStorage.getItem('rajaPantunHighScoreMedium')) || 0;
     let highScoreHard = parseInt(localStorage.getItem('rajaPantunHighScoreHard')) || 0;
@@ -197,7 +470,6 @@
         ['#8E2DE2', '#4A00E0'],
     ];
 
-    // Variabel Global Level Sulit (Drag & Drop)
     let currentPantunIndex = 0;
     let hardModeTimer = 60;
     let lastTimerUpdate = 0;
@@ -207,19 +479,11 @@
     let dragOffsetX = 0;
     let dragOffsetY = 0;
 
-    // --- KELAS TOMBOL MENU (BISA DIPOTONG) ---
     class MenuButton {
         constructor(x, y, w, h, imgSrc, mode) {
-            this.x = x; 
-            this.y = y; 
-            this.w = w; 
-            this.h = h;
-            this.mode = mode;
-            this.sliced = false;
-            this.halves = [];
-            
-            this.img = new Image();
-            this.img.src = imgSrc;
+            this.x = x; this.y = y; this.w = w; this.h = h; this.mode = mode;
+            this.sliced = false; this.halves = [];
+            this.img = new Image(); this.img.src = imgSrc;
         }
 
         draw() {
@@ -227,64 +491,33 @@
 
             if (this.sliced) {
                 this.halves.forEach(h => {
-                    h.x += h.vx; 
-                    h.y += h.vy; 
-                    h.vy += 0.4; 
-                    h.rotation += h.vRot;
-                    
-                    ctx.save();
-                    ctx.translate(h.x, h.y);
-                    ctx.rotate(h.rotation);
-                    
+                    h.x += h.vx; h.y += h.vy; h.vy += 0.4; h.rotation += h.vRot;
+                    ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.rotation);
                     ctx.beginPath();
-                    if (h.isLeft) {
-                        ctx.rect(-this.w/2, -this.h/2, this.w/2, this.h);
-                    } else {
-                        ctx.rect(0, -this.h/2, this.w/2, this.h);
-                    }
-                    ctx.clip();
-                    ctx.drawImage(this.img, -this.w/2, -this.h/2, this.w, this.h);
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(0, -this.h/2);
-                    ctx.lineTo(0, this.h/2);
-                    ctx.strokeStyle = 'rgba(255,255,255,0.8)';
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
+                    if (h.isLeft) ctx.rect(-this.w/2, -this.h/2, this.w/2, this.h);
+                    else ctx.rect(0, -this.h/2, this.w/2, this.h);
+                    ctx.clip(); ctx.drawImage(this.img, -this.w/2, -this.h/2, this.w, this.h);
+                    ctx.beginPath(); ctx.moveTo(0, -this.h/2); ctx.lineTo(0, this.h/2);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 3; ctx.stroke();
                     ctx.restore();
                 });
             } else {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                
+                ctx.save(); ctx.translate(this.x, this.y);
                 let floatY = Math.sin(Date.now() / 400 + this.x) * 10;
-                
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 15;
-                ctx.shadowOffsetY = 10;
-                
+                ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 10;
                 ctx.drawImage(this.img, -this.w/2, -this.h/2 + floatY, this.w, this.h);
 
-                // --- INDIKATOR TOMBOL TERKUNCI ---
                 let isLocked = false;
                 if (this.mode === 'medium' && highScoreEasy < 200) isLocked = true;
-                if (this.mode === 'hard' && highScoreMedium < 200) isLocked = true;
+                if (this.mode === 'hard' && highScoreMedium < 100) isLocked = true;
 
                 if (isLocked) {
-                    ctx.shadowColor = 'black';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowOffsetY = 2;
-                    
-                    ctx.fillStyle = 'white';
-                    ctx.font = `bold ${this.w/5}px Nunito`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'black'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 2;
+                    ctx.fillStyle = 'white'; ctx.font = `bold ${this.w/5}px Nunito`;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                     ctx.fillText("🔒", 0, floatY);
-                    
-                    ctx.shadowBlur = 0;
-                    ctx.shadowOffsetY = 0;
+                    ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
                 }
-
                 ctx.restore();
             }
         }
@@ -298,8 +531,8 @@
                 swipes = {}; 
                 return;
             }
-            if (this.mode === 'hard' && highScoreMedium < 200) {
-                document.getElementById('lockedModalText').innerHTML = `Dapatkan skor minimal <span class="text-yellow-400 font-bold text-2xl">200</span> di Level Sedang untuk membuka level ini.`;
+            if (this.mode === 'hard' && highScoreMedium < 100) {
+                document.getElementById('lockedModalText').innerHTML = `Dapatkan skor minimal <span class="text-yellow-400 font-bold text-2xl">100</span> di Level Sedang untuk membuka level ini.`;
                 document.getElementById('lockedModal').classList.remove('hidden');
                 swipes = {};
                 return;
@@ -307,21 +540,17 @@
 
             this.sliced = true;
             menuButtons = menuButtons.filter(btn => btn === this);
-            swordSound.currentTime = 0;
-            swordSound.play().catch(() => {});
+            swordSound.currentTime = 0; swordSound.play().catch(() => {});
 
             this.halves = [
                 { x: this.x, y: this.y, vx: -3, vy: -5, vRot: -0.05, isLeft: true, rotation: 0 },
                 { x: this.x, y: this.y, vx: 3, vy: -5, vRot: 0.05, isLeft: false, rotation: 0 }
             ];
-            
             for(let i=0; i<15; i++) particles.push(new Particle(this.x, this.y, '#ffffff'));
-
-            handleStart(this.mode);
+            window.handleStart(this.mode);
         }
     }
 
-    // --- INISIALISASI MENU ---
     function initMenu() {
         menuButtons = [];
         let btnWidth = width < 768 ? 90 : 160;
@@ -336,15 +565,16 @@
         menuButtons.push(new MenuButton(easyX, yPos, btnWidth, btnHeight, 'https://github.com/user-attachments/assets/468cf861-e122-49dd-829b-001add7d8296', 'single'));
         menuButtons.push(new MenuButton(mediumX, yPos, btnWidth, btnHeight, 'https://github.com/user-attachments/assets/fda6f28b-aab0-4a2f-973d-95c8c1720b2d', 'medium'));
         menuButtons.push(new MenuButton(hardX, yPos, btnWidth, btnHeight, 'https://github.com/user-attachments/assets/cfc0021a-b64b-4db8-90fe-a58885c9a3d6', 'hard'));
+        
+        document.getElementById('leaderboardBtn').classList.remove('hidden');
     }
 
-    // --- LOGIC COUNTDOWN & START ---
-    function handleStart(mode) {
+    window.handleStart = (mode) => {
         gameState = 'countdown';
         gameMode = mode;
         
-        const gameBg = "url('https://github.com/user-attachments/assets/9e4fb73f-d137-4182-9e3d-a7f18684372d')";
-        canvas.style.backgroundImage = gameBg;
+        document.getElementById('leaderboardBtn').classList.add('hidden');
+        canvas.style.backgroundImage = "url('https://github.com/user-attachments/assets/9e4fb73f-d137-4182-9e3d-a7f18684372d')";
         
         setTimeout(() => {
             const countdownOverlay = document.getElementById('countdownOverlay');
@@ -367,184 +597,101 @@
                 }
             }, 1000);
         }, 500);
-    }
+    };
 
     function startGame() {
         gameState = 'playing';
         p1.score = 0; 
         p1.lives = 3;
         p1.streak = 0;
+        p1.questionsCompleted = 0;
         
         if (gameMode === 'hard') {
             currentPantunIndex = 0;
             initHardModeLevel();
         } else {
             pickNewTarget(p1);
-            fruits = [];
-            bombs = [];
-            particles = [];
-            popups = [];
-            swipes = {};
-            spawnTimer = 0;
-            
-            if (gameMode === 'medium') {
-                spawnInterval = 2000; 
-                difficultyMultiplier = 1.0; 
-            } else {
-                spawnInterval = 2500; 
-                difficultyMultiplier = 0.7; 
-            }
+            fruits = []; bombs = []; particles = []; popups = []; swipes = {}; spawnTimer = 0;
+            if (gameMode === 'medium') { spawnInterval = 2000; difficultyMultiplier = 1.0; } 
+            else { spawnInterval = 2500; difficultyMultiplier = 0.7; }
         }
         lastTime = performance.now();
     }
 
-    // --- LOGIC LEVEL SULIT (DRAG AND DROP) ---
     function initHardModeLevel() {
-        slots = [];
-        draggables = [];
-        draggingItem = null;
+        slots = []; draggables = []; draggingItem = null;
         
         if(currentPantunIndex >= PANTUN_DATA.length) {
-            gameOver(); // Menang
+            // Trigger Menang Hard Mode (4 Soal Benar)
+            gameOver(true); 
             return;
         }
 
         let currentPantun = PANTUN_DATA[currentPantunIndex];
-        
-        // Acak urutan kalimat
-        let shuffledLines = currentPantun.lines.map((text, idx) => ({text, id: idx}))
-            .sort(() => Math.random() - 0.5);
+        let shuffledLines = currentPantun.lines.map((text, idx) => ({text, id: idx})).sort(() => Math.random() - 0.5);
 
         let boxW = width * 0.9;
         if(width > 768) boxW = width * 0.5;
         let boxH = height * 0.08;
         let startX = width / 2;
 
-        // Slot Kosong (Di atas)
         let slotStartY = height * 0.15;
         for(let i=0; i<4; i++) {
-            slots.push({
-                x: startX,
-                y: slotStartY + i * (boxH + 15),
-                w: boxW,
-                h: boxH,
-                expectedId: i,
-                currentItem: null
-            });
+            slots.push({ x: startX, y: slotStartY + i * (boxH + 15), w: boxW, h: boxH, expectedId: i, currentItem: null });
         }
 
-        // Pilihan Jawaban (Di bawah)
         let dragStartY = height * 0.6;
         for(let i=0; i<4; i++) {
-            draggables.push({
-                x: startX,
-                y: dragStartY + i * (boxH + 15),
-                originX: startX,
-                originY: dragStartY + i * (boxH + 15),
-                w: boxW,
-                h: boxH,
-                text: shuffledLines[i].text,
-                id: shuffledLines[i].id,
-                isDragging: false
-            });
+            draggables.push({ x: startX, y: dragStartY + i * (boxH + 15), originX: startX, originY: dragStartY + i * (boxH + 15), w: boxW, h: boxH, text: shuffledLines[i].text, id: shuffledLines[i].id, isDragging: false });
         }
-        
-        hardModeTimer = 60; // Set timer 60 detik
+        hardModeTimer = 60; 
     }
 
     function drawHardMode(timestamp) {
-        // Update Timer
         if (timestamp - lastTimerUpdate > 1000) {
-            hardModeTimer--;
-            lastTimerUpdate = timestamp;
+            hardModeTimer--; lastTimerUpdate = timestamp;
             if (hardModeTimer <= 0) {
                 p1.lives--;
                 createPopup("WAKTU HABIS!", width/2, height/2, '#ef4444');
-                if (p1.lives <= 0) {
-                    gameOver();
-                } else {
-                    // Nyawa berkurang, tapi bisa mengulang level ini
-                    setTimeout(() => { initHardModeLevel(); }, 1000);
-                }
+                if (p1.lives <= 0) gameOver();
+                else setTimeout(() => { initHardModeLevel(); }, 1000);
             }
         }
 
         let currentPantun = PANTUN_DATA[currentPantunIndex];
-        
-        // Header Teks
-        ctx.fillStyle = 'white'; 
-        ctx.textAlign = 'center'; 
-        ctx.textBaseline = 'middle';
-        
+        ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         let headerSize = width < 768 ? 20 : 30;
-        ctx.font = `bold ${headerSize}px Nunito`;
-        ctx.fillText(`Tema: ${currentPantun.theme}`, width/2, 30);
-        
-        ctx.fillStyle = hardModeTimer <= 10 ? '#ef4444' : '#fceabb';
-        ctx.font = `bold ${headerSize * 1.5}px Fredoka One`;
+        ctx.font = `bold ${headerSize}px Nunito`; ctx.fillText(`Tema: ${currentPantun.theme}`, width/2, 30);
+        ctx.fillStyle = hardModeTimer <= 10 ? '#ef4444' : '#fceabb'; ctx.font = `bold ${headerSize * 1.5}px Fredoka One`;
         ctx.fillText(`Waktu: ${hardModeTimer}s`, width/2, 30 + headerSize + 10);
         
-        // Lives & Score
-        ctx.fillStyle = 'white'; 
-        ctx.font = `bold ${headerSize}px Nunito`;
-        ctx.textAlign = 'left'; 
+        ctx.fillStyle = 'white'; ctx.font = `bold ${headerSize}px Nunito`; ctx.textAlign = 'left'; 
         ctx.fillText(`Skor: ${p1.score}`, 20, 20);
         ctx.fillStyle = '#ef4444';
         for(let i=0; i<3; i++) ctx.fillText(i < p1.lives ? "❤️" : "🖤", 20 + (i * 35), 50);
 
-        // Gambar Slots
         slots.forEach(s => {
-            ctx.beginPath();
-            ctx.roundRect(s.x - s.w/2, s.y - s.h/2, s.w, s.h, 10);
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 3;
-            ctx.setLineDash([10, 10]);
-            ctx.stroke();
-            ctx.setLineDash([]); // reset
-            
-            if (!s.currentItem) {
-                ctx.fillStyle = 'rgba(255,255,255,0.2)';
-                ctx.fill();
-            }
+            ctx.beginPath(); ctx.roundRect(s.x - s.w/2, s.y - s.h/2, s.w, s.h, 10);
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 3; ctx.setLineDash([10, 10]); ctx.stroke(); ctx.setLineDash([]);
+            if (!s.currentItem) { ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.fill(); }
         });
 
-        // Gambar Draggables (Mulai dari yang tidak di-drag dulu, baru yang di-drag)
         let nonDragging = draggables.filter(d => !d.isDragging);
         let dragging = draggables.filter(d => d.isDragging);
 
         [...nonDragging, ...dragging].forEach(d => {
-            ctx.beginPath();
-            ctx.roundRect(d.x - d.w/2, d.y - d.h/2, d.w, d.h, 10);
-            
+            ctx.beginPath(); ctx.roundRect(d.x - d.w/2, d.y - d.h/2, d.w, d.h, 10);
             let grad = ctx.createLinearGradient(d.x, d.y - d.h/2, d.x, d.y + d.h/2);
-            if (d.isDragging) {
-                grad.addColorStop(0, '#f59e0b'); // Amber
-                grad.addColorStop(1, '#b45309');
-            } else {
-                grad.addColorStop(0, '#3b82f6'); // Blue
-                grad.addColorStop(1, '#1d4ed8');
-            }
-            
-            ctx.fillStyle = grad;
-            ctx.fill();
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Teks pada kotak
-            ctx.fillStyle = 'white';
-            ctx.font = `bold ${Math.min(d.h * 0.4, 20)}px Nunito`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            if (d.isDragging) { grad.addColorStop(0, '#f59e0b'); grad.addColorStop(1, '#b45309'); } 
+            else { grad.addColorStop(0, '#3b82f6'); grad.addColorStop(1, '#1d4ed8'); }
+            ctx.fillStyle = grad; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.fillStyle = 'white'; ctx.font = `bold ${Math.min(d.h * 0.4, 20)}px Nunito`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(d.text, d.x, d.y, d.w - 20);
         });
 
-        // Gambar Popups
         for (let i = popups.length - 1; i >= 0; i--) {
-            let p = popups[i];
-            p.y += p.vy; p.life -= 0.015;
-            ctx.globalAlpha = Math.max(0, p.life);
-            ctx.fillStyle = p.color; ctx.font = 'bold 30px Fredoka One';
+            let p = popups[i]; p.y += p.vy; p.life -= 0.015;
+            ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.font = 'bold 30px Fredoka One';
             ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y);
             if (p.life <= 0) popups.splice(i, 1);
         }
@@ -556,44 +703,39 @@
         if (!isComplete) return;
 
         let isCorrect = slots.every(s => s.currentItem.id === s.expectedId);
-        
         if (isCorrect) {
-            p1.score += 200; // Skor besar untuk hard mode
+            p1.score += 200; 
             createPopup("BENAR SEKALI!", width/2, height/2, '#10b981');
             currentPantunIndex++;
             setTimeout(() => {
-                if (currentPantunIndex >= PANTUN_DATA.length) {
-                    gameOver(); // Menang
-                } else {
-                    initHardModeLevel();
-                }
+                if (currentPantunIndex >= PANTUN_DATA.length) gameOver(true); 
+                else initHardModeLevel();
             }, 1500);
         } else {
             createPopup("SUSUNAN SALAH!", width/2, height/2, '#ef4444');
-            // Kembalikan kotak ke posisi semula
             setTimeout(() => {
                 slots.forEach(s => {
                     if (s.currentItem) {
-                        s.currentItem.x = s.currentItem.originX;
-                        s.currentItem.y = s.currentItem.originY;
-                        s.currentItem = null;
+                        s.currentItem.x = s.currentItem.originX; s.currentItem.y = s.currentItem.originY; s.currentItem = null;
                     }
                 });
             }, 1000);
         }
     }
 
-
-    // --- ENTITAS BUAH & BOM (Level Mudah/Sedang) ---
     class Fruit {
-        constructor(playerObj) {
+        constructor(playerObj, zoneIndex = 0, totalZones = 1) {
             this.player = playerObj;
             this.isCorrect = Math.random() > 0.4; 
             const wordList = this.isCorrect ? this.player.currentData.correct : this.player.currentData.wrong;
             this.word = wordList[Math.floor(Math.random() * wordList.length)];
             
             this.radius = window.innerWidth < 768 ? 35 : 45;
-            this.x = this.player.xMin + this.radius + Math.random() * (this.player.xMax - this.player.xMin - this.radius*2);
+            let zoneWidth = (this.player.xMax - this.player.xMin) / totalZones;
+            let zoneStartX = this.player.xMin + (zoneIndex * zoneWidth);
+            let safeSpace = Math.max(0, zoneWidth - (this.radius * 2));
+            
+            this.x = zoneStartX + this.radius + (Math.random() * safeSpace);
             this.y = height + this.radius;
             
             const centerX = (this.player.xMin + this.player.xMax) / 2;
@@ -601,31 +743,21 @@
             this.vy = -(height * 0.012) - Math.random() * (height * 0.002) * difficultyMultiplier;
             this.gravity = height * 0.00018;
             
-            this.rotation = 0;
-            this.vRot = (Math.random() - 0.5) * 0.06;
-            this.sliced = false;
-            this.halves = [];
-            
+            this.rotation = 0; this.vRot = (Math.random() - 0.5) * 0.06;
+            this.sliced = false; this.halves = [];
             const colorPair = FRUIT_COLORS[Math.floor(Math.random() * FRUIT_COLORS.length)];
-            this.color1 = colorPair[0];
-            this.color2 = colorPair[1];
+            this.color1 = colorPair[0]; this.color2 = colorPair[1];
         }
 
         update() {
             if (this.sliced) {
-                this.halves.forEach(h => {
-                    h.x += h.vx; h.y += h.vy;
-                    h.vy += this.gravity; h.rotation += h.vRot;
-                });
+                this.halves.forEach(h => { h.x += h.vx; h.y += h.vy; h.vy += this.gravity; h.rotation += h.vRot; });
                 return;
             }
-            this.x += this.vx; this.y += this.vy;
-            this.vy += this.gravity; this.rotation += this.vRot;
-
+            this.x += this.vx; this.y += this.vy; this.vy += this.gravity; this.rotation += this.vRot;
             if (this.y > height + this.radius * 2 && this.vy > 0) {
                 if (this.isCorrect && !this.sliced) {
-                    this.player.lives--;
-                    this.player.streak = 0; 
+                    this.player.lives--; this.player.streak = 0; 
                     createPopup("MISS!", this.x, height - 50, '#ef4444');
                     checkGameOver();
                 }
@@ -636,16 +768,12 @@
         draw() {
             if (this.sliced) {
                 this.halves.forEach(h => {
-                    ctx.save();
-                    ctx.translate(h.x, h.y); ctx.rotate(h.rotation);
-                    ctx.beginPath();
-                    ctx.arc(0, 0, this.radius, h.startAngle, h.endAngle);
-                    ctx.closePath();
+                    ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.rotation);
+                    ctx.beginPath(); ctx.arc(0, 0, this.radius, h.startAngle, h.endAngle); ctx.closePath();
                     const grad = ctx.createLinearGradient(-this.radius, -this.radius, this.radius, this.radius);
                     grad.addColorStop(0, this.color1); grad.addColorStop(1, this.color2);
                     ctx.fillStyle = grad; ctx.fill();
-                    ctx.beginPath();
-                    ctx.moveTo(Math.cos(h.startAngle)*this.radius, Math.sin(h.startAngle)*this.radius);
+                    ctx.beginPath(); ctx.moveTo(Math.cos(h.startAngle)*this.radius, Math.sin(h.startAngle)*this.radius);
                     ctx.lineTo(Math.cos(h.endAngle)*this.radius, Math.sin(h.endAngle)*this.radius);
                     ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
                     ctx.restore();
@@ -653,37 +781,19 @@
                 return;
             }
 
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            ctx.save();
-            ctx.rotate(this.rotation);
-            ctx.beginPath();
-            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.save(); ctx.translate(this.x, this.y); ctx.save(); ctx.rotate(this.rotation);
+            ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
             const grad = ctx.createRadialGradient(-this.radius/3, -this.radius/3, this.radius/5, 0, 0, this.radius);
             grad.addColorStop(0, this.color1); grad.addColorStop(1, this.color2);
-            ctx.fillStyle = grad; ctx.fill();
-            ctx.restore();
-
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-            ctx.beginPath(); 
-            ctx.roundRect(-this.radius * 0.85, -15, this.radius * 1.7, 30, 10); 
-            ctx.fill();
-
-            ctx.fillStyle = 'white';
-            ctx.font = `bold ${this.radius * 0.45}px Nunito`;
-            ctx.textAlign = 'center'; 
-            ctx.textBaseline = 'middle';
-            ctx.fillText(this.word, 0, 0);
-            ctx.restore();
+            ctx.fillStyle = grad; ctx.fill(); ctx.restore();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; ctx.beginPath(); ctx.roundRect(-this.radius * 0.85, -15, this.radius * 1.7, 30, 10); ctx.fill();
+            ctx.fillStyle = 'white'; ctx.font = `bold ${this.radius * 0.45}px Nunito`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(this.word, 0, 0); ctx.restore();
         }
 
         slice() {
-            this.sliced = true;
-            this.toBeRemoved = true;
-            
-            swordSound.currentTime = 0;
-            swordSound.play().catch(() => {});
-
+            this.sliced = true; this.toBeRemoved = true;
+            swordSound.currentTime = 0; swordSound.play().catch(() => {});
             this.halves = [
                 { x: this.x, y: this.y, vx: -2, vy: this.vy, vRot: -0.1, startAngle: 0, endAngle: Math.PI, rotation: this.rotation },
                 { x: this.x, y: this.y, vx: 2, vy: this.vy, vRot: 0.1, startAngle: Math.PI, endAngle: Math.PI * 2, rotation: this.rotation }
@@ -691,95 +801,67 @@
             for(let i=0; i<10; i++) particles.push(new Particle(this.x, this.y, this.color1));
             
             if (this.isCorrect) {
-                this.player.score += 10;
-                this.player.streak++;
-                
-                if (this.player.streak >= 10) {
-                    this.player.streak = 0;
-                    pickNewTarget(this.player);
-                    difficultyMultiplier += 0.2; 
-                    createPopup("LEVEL UP!", this.x, this.y - 40, '#f59e0b');
-                } else {
-                    createPopup(`+10 (Combo ${this.player.streak})`, this.x, this.y, '#10b981');
-                }
+                this.player.score += 10; this.player.streak++;
+                let targetStreak = gameMode === 'medium' ? 5 : 10;
+                if (this.player.streak >= targetStreak) {
+                    this.player.streak = 0; this.player.questionsCompleted++;
+                    if (gameMode === 'medium' && this.player.questionsCompleted >= 3) {
+                        createPopup("LEVEL SELESAI!", this.x, this.y - 40, '#f59e0b');
+                        setTimeout(() => gameOver(), 1000);
+                    } else {
+                        pickNewTarget(this.player); difficultyMultiplier += 0.2; 
+                        createPopup("LEVEL UP!", this.x, this.y - 40, '#f59e0b');
+                    }
+                } else { createPopup(`+10 (Combo ${this.player.streak})`, this.x, this.y, '#10b981'); }
             } else {
-                this.player.lives--;
-                this.player.streak = 0; 
-                createPopup("SALAH!", this.x, this.y, '#ef4444');
-                checkGameOver();
+                this.player.lives--; this.player.streak = 0; 
+                createPopup("SALAH!", this.x, this.y, '#ef4444'); checkGameOver();
             }
         }
     }
 
     class Bomb {
-        constructor(playerObj) {
+        constructor(playerObj, zoneIndex = 0, totalZones = 1) {
             this.player = playerObj;
             this.radius = window.innerWidth < 768 ? 35 : 45;
-            this.x = this.player.xMin + this.radius + Math.random() * (this.player.xMax - this.player.xMin - this.radius*2);
+            let zoneWidth = (this.player.xMax - this.player.xMin) / totalZones;
+            let zoneStartX = this.player.xMin + (zoneIndex * zoneWidth);
+            let safeSpace = Math.max(0, zoneWidth - (this.radius * 2));
+            this.x = zoneStartX + this.radius + (Math.random() * safeSpace);
             this.y = height + this.radius;
-            
             const centerX = (this.player.xMin + this.player.xMax) / 2;
             this.vx = (centerX - this.x) * 0.01 + (Math.random() - 0.5) * 2;
             this.vy = -(height * 0.012) - Math.random() * (height * 0.002) * difficultyMultiplier;
             this.gravity = height * 0.00018;
-            
-            this.rotation = 0;
-            this.vRot = (Math.random() - 0.5) * 0.06;
+            this.rotation = 0; this.vRot = (Math.random() - 0.5) * 0.06;
             this.sliced = false;
         }
 
         update() {
-            this.x += this.vx; 
-            this.y += this.vy;
-            this.vy += this.gravity; 
-            this.rotation += this.vRot;
-
-            if (this.y > height + this.radius * 2 && this.vy > 0) {
-                this.toBeRemoved = true;
-            }
+            this.x += this.vx; this.y += this.vy; this.vy += this.gravity; this.rotation += this.vRot;
+            if (this.y > height + this.radius * 2 && this.vy > 0) this.toBeRemoved = true;
         }
 
         draw() {
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.rotation);
-
-            ctx.beginPath();
-            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation);
+            ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
             const grad = ctx.createRadialGradient(-this.radius/3, -this.radius/3, this.radius/5, 0, 0, this.radius);
-            grad.addColorStop(0, '#555'); 
-            grad.addColorStop(1, '#111');
-            ctx.fillStyle = grad; 
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(0, -this.radius);
-            ctx.quadraticCurveTo(this.radius/2, -this.radius*1.5, this.radius/2, -this.radius*1.2);
-            ctx.strokeStyle = '#888'; 
-            ctx.lineWidth = 4; 
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.arc(this.radius/2, -this.radius*1.2, 5 + Math.random()*4, 0, Math.PI*2);
-            ctx.fillStyle = '#f59e0b'; 
-            ctx.fill();
-
+            grad.addColorStop(0, '#555'); grad.addColorStop(1, '#111');
+            ctx.fillStyle = grad; ctx.fill();
+            ctx.beginPath(); ctx.moveTo(0, -this.radius); ctx.quadraticCurveTo(this.radius/2, -this.radius*1.5, this.radius/2, -this.radius*1.2);
+            ctx.strokeStyle = '#888'; ctx.lineWidth = 4; ctx.stroke();
+            ctx.beginPath(); ctx.arc(this.radius/2, -this.radius*1.2, 5 + Math.random()*4, 0, Math.PI*2);
+            ctx.fillStyle = '#f59e0b'; ctx.fill();
             ctx.restore();
         }
 
         slice() {
-            this.sliced = true;
-            this.toBeRemoved = true;
-            
-            swordSound.currentTime = 0;
-            swordSound.play().catch(() => {});
-
+            this.sliced = true; this.toBeRemoved = true;
+            swordSound.currentTime = 0; swordSound.play().catch(() => {});
             for(let i=0; i<15; i++) particles.push(new Particle(this.x, this.y, '#ef4444')); 
             for(let i=0; i<10; i++) particles.push(new Particle(this.x, this.y, '#f59e0b')); 
             for(let i=0; i<10; i++) particles.push(new Particle(this.x, this.y, '#111111')); 
-            
-            this.player.lives--;
-            this.player.streak = 0; 
+            this.player.lives--; this.player.streak = 0; 
             createPopup("BOM!", this.x, this.y, '#ef4444');
             checkGameOver();
         }
@@ -787,95 +869,68 @@
 
     class Particle {
         constructor(x, y, color) {
-            this.x = x; this.y = y;
-            this.vx = (Math.random() - 0.5) * 8;
-            this.vy = (Math.random() - 0.5) * 8;
-            this.life = 1.0; this.color = color;
-            this.size = Math.random() * 6 + 2;
+            this.x = x; this.y = y; this.vx = (Math.random() - 0.5) * 8; this.vy = (Math.random() - 0.5) * 8;
+            this.life = 1.0; this.color = color; this.size = Math.random() * 6 + 2;
         }
         update() { this.x += this.vx; this.y += this.vy; this.vy += 0.15; this.life -= 0.02; }
         draw() {
-            ctx.globalAlpha = Math.max(0, this.life);
-            ctx.fillStyle = this.color;
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
-            ctx.globalAlpha = 1.0;
+            ctx.globalAlpha = Math.max(0, this.life); ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1.0;
         }
     }
 
-    // --- FUNGSI PENDUKUNG ---
-
     function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        width = canvas.width; height = canvas.height;
-        p1.xMin = 0; p1.xMax = width;
-
-        if (gameState === 'menu') {
-            initMenu();
-        } else if (gameState === 'playing' && gameMode === 'hard') {
-            // Posisi box bergantung dimensi layar, reset level agar posisi sesuai
-            initHardModeLevel(); 
-        }
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        width = canvas.width; height = canvas.height; p1.xMin = 0; p1.xMax = width;
+        if (gameState === 'menu') initMenu();
+        else if (gameState === 'playing' && gameMode === 'hard') initHardModeLevel(); 
     }
     window.addEventListener('resize', resize);
 
     function pickNewTarget(playerObj) {
-        const oldTarget = playerObj.targetWord;
-        let newData;
-        do {
-            newData = RHYME_DATA[Math.floor(Math.random() * RHYME_DATA.length)];
-        } while (newData.target === oldTarget);
-        
-        playerObj.currentData = newData;
-        playerObj.targetWord = playerObj.currentData.target;
+        const oldTarget = playerObj.targetWord; let newData;
+        do { newData = RHYME_DATA[Math.floor(Math.random() * RHYME_DATA.length)]; } while (newData.target === oldTarget);
+        playerObj.currentData = newData; playerObj.targetWord = playerObj.currentData.target;
     }
 
-    function backToMenu() {
+    window.backToMenu = () => {
         gameState = 'menu';
         canvas.style.backgroundImage = "url('https://github.com/user-attachments/assets/b7909539-0d15-4536-8a7a-286c487d5fee')";
         document.getElementById('gameOverScreen').classList.add('hidden');
+        document.getElementById('badgeModal').classList.add('hidden');
         ctx.clearRect(0, 0, width, height);
-        
-        initMenu();
-        swipes = {};
-        particles = [];
-        bombs = [];
-        draggingItem = null;
-        
+        initMenu(); swipes = {}; particles = []; bombs = []; draggingItem = null;
         lastTime = performance.now();
         requestAnimationFrame(gameLoop); 
-    }
+    };
 
     function checkGameOver() { if (p1.lives <= 0) gameOver(); }
 
-    function gameOver() {
+    function gameOver(isHardModeWin = false) {
         gameState = 'gameover';
-        document.getElementById('gameOverScreen').classList.remove('hidden');
         document.getElementById('gameOverScore').innerText = `Skor Akhir: ${p1.score}`;
         
-        // Simpan skor tertinggi
         if (gameMode === 'single' && p1.score > highScoreEasy) {
-            highScoreEasy = p1.score;
-            localStorage.setItem('rajaPantunHighScoreEasy', highScoreEasy);
+            highScoreEasy = p1.score; localStorage.setItem('rajaPantunHighScoreEasy', highScoreEasy);
         } else if (gameMode === 'medium' && p1.score > highScoreMedium) {
-            highScoreMedium = p1.score;
-            localStorage.setItem('rajaPantunHighScoreMedium', highScoreMedium);
+            highScoreMedium = p1.score; localStorage.setItem('rajaPantunHighScoreMedium', highScoreMedium);
         } else if (gameMode === 'hard' && p1.score > highScoreHard) {
-            highScoreHard = p1.score;
-            localStorage.setItem('rajaPantunHighScoreHard', highScoreHard);
+            highScoreHard = p1.score; localStorage.setItem('rajaPantunHighScoreHard', highScoreHard);
+        }
+
+        // Cek apakah pemain berhak mendapat lencana
+        let isGettingBadge = processBadgeRewards(gameMode, p1.score, isHardModeWin);
+        
+        // Jika tidak dapat lencana, langsung tampilkan layar game over biasa
+        if (!isGettingBadge) {
+            document.getElementById('gameOverScreen').classList.remove('hidden');
         }
     }
 
-    function createPopup(text, x, y, color) {
-        popups.push({ text, x, y, color, life: 1.0, vy: -2 });
-    }
-
-    // --- RENDER LOOP UTAMA ---
+    function createPopup(text, x, y, color) { popups.push({ text, x, y, color, life: 1.0, vy: -2 }); }
 
     function gameLoop(timestamp) {
-        let dt = timestamp - lastTime;
-        lastTime = timestamp;
-
+        let dt = timestamp - lastTime; lastTime = timestamp;
         ctx.clearRect(0, 0, width, height);
 
         if (gameState === 'menu' || gameState === 'countdown') {
@@ -891,30 +946,24 @@
 
         if (gameState === 'gameover') return;
 
-        // MODE BERMAIN (HARD: DRAG AND DROP)
         if (gameMode === 'hard') {
-            drawHardMode(timestamp);
-            requestAnimationFrame(gameLoop);
-            return;
+            drawHardMode(timestamp); requestAnimationFrame(gameLoop); return;
         }
 
-        // MODE BERMAIN (EASY & MEDIUM: SLICING)
         spawnTimer += dt;
         if (spawnTimer > spawnInterval) {
             spawnTimer = 0;
-            
             if (gameMode === 'medium') {
                 if (Math.random() < 0.15) pickNewTarget(p1);
-                
                 let spawnCount = Math.floor(Math.random() * 2) + 2; 
+                let zones = Array.from({length: spawnCount}, (_, i) => i).sort(() => Math.random() - 0.5);
                 for (let i = 0; i < spawnCount; i++) {
-                    if (Math.random() < 0.2) bombs.push(new Bomb(p1));
-                    else fruits.push(new Fruit(p1));
+                    if (Math.random() < 0.2) bombs.push(new Bomb(p1, zones[i], spawnCount));
+                    else fruits.push(new Fruit(p1, zones[i], spawnCount));
                 }
                 if (spawnInterval > 1500) spawnInterval -= 15;
-
-            } else { // single / mudah
-                fruits.push(new Fruit(p1));
+            } else { 
+                fruits.push(new Fruit(p1, 0, 1));
                 if (spawnInterval > 1200) spawnInterval -= 10;
             }
         }
@@ -925,28 +974,22 @@
             fruits[i].update(); fruits[i].draw();
             if (fruits[i].toBeRemoved) fruits.splice(i, 1);
         }
-
         for (let i = bombs.length - 1; i >= 0; i--) {
             bombs[i].update(); bombs[i].draw();
             if (bombs[i].toBeRemoved) bombs.splice(i, 1);
         }
-
         for (let i = particles.length - 1; i >= 0; i--) {
             particles[i].update(); particles[i].draw();
             if (particles[i].life <= 0) particles.splice(i, 1);
         }
-
         for (let i = popups.length - 1; i >= 0; i--) {
-            let p = popups[i];
-            p.y += p.vy; p.life -= 0.015;
-            ctx.globalAlpha = Math.max(0, p.life);
-            ctx.fillStyle = p.color; ctx.font = 'bold 30px Fredoka One';
+            let p = popups[i]; p.y += p.vy; p.life -= 0.015;
+            ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.font = 'bold 30px Fredoka One';
             ctx.textAlign = 'center'; ctx.fillText(p.text, p.x, p.y);
             if (p.life <= 0) popups.splice(i, 1);
         }
         ctx.globalAlpha = 1.0;
         drawSwipes();
-        
         requestAnimationFrame(gameLoop);
     }
 
@@ -954,118 +997,72 @@
         ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
         let fontSizeTitle = width < 768 ? 20 : 30;
         let fontSizeWord = width < 768 ? 30 : 50;
-        ctx.font = `bold ${fontSizeTitle}px Nunito`;
-        ctx.fillText("Cari rima dari kata:", width/2, 20);
-        ctx.font = `bold ${fontSizeWord}px Fredoka One`;
-        ctx.fillStyle = '#fceabb';
+        ctx.font = `bold ${fontSizeTitle}px Nunito`; ctx.fillText("Cari rima dari kata:", width/2, 20);
+        ctx.font = `bold ${fontSizeWord}px Fredoka One`; ctx.fillStyle = '#fceabb';
         ctx.fillText(`"${p1.targetWord}"`, width/2, 20 + fontSizeTitle + 10);
-        
-        ctx.fillStyle = 'white'; ctx.font = `bold ${fontSizeTitle}px Nunito`;
-        ctx.textAlign = 'left'; 
+        ctx.fillStyle = 'white'; ctx.font = `bold ${fontSizeTitle}px Nunito`; ctx.textAlign = 'left'; 
         ctx.fillText(`Skor: ${p1.score}`, 20, 20);
-        
         ctx.fillStyle = '#f59e0b';
-        ctx.fillText(`Combo: ${p1.streak}/10`, 20, 100);
-
+        let targetStreak = gameMode === 'medium' ? 5 : 10;
+        let soalTeks = gameMode === 'medium' ? ` | Soal: ${p1.questionsCompleted + 1}/3` : '';
+        ctx.fillText(`Combo: ${p1.streak}/${targetStreak}${soalTeks}`, 20, 100);
         ctx.fillStyle = '#ef4444';
         for(let i=0; i<3; i++) ctx.fillText(i < p1.lives ? "❤️" : "🖤", 20 + (i * 35), 60);
     }
 
-    // --- SISTEM SLICING & DRAG INPUT ---
     let isMouseDown = false;
-
     function getPointerPos(e) {
-        if (e.touches && e.touches.length > 0) {
-            return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        } else if (e.changedTouches && e.changedTouches.length > 0) {
-            return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
-        }
+        if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        else if (e.changedTouches && e.changedTouches.length > 0) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
         return { x: e.clientX, y: e.clientY };
     }
 
     function handlePointerDown(e) {
         let pos = getPointerPos(e);
-        
         if (gameState === 'playing' && gameMode === 'hard') {
-            // Cek apakah menyentuh blok kata untuk didrag (Cek dari yang teratas/terakhir)
             for (let i = draggables.length - 1; i >= 0; i--) {
                 let d = draggables[i];
                 if (pos.x > d.x - d.w/2 && pos.x < d.x + d.w/2 && pos.y > d.y - d.h/2 && pos.y < d.y + d.h/2) {
-                    draggingItem = d;
-                    d.isDragging = true;
-                    dragOffsetX = pos.x - d.x;
-                    dragOffsetY = pos.y - d.y;
-                    
-                    // Lepaskan dari slot jika sebelumnya berada di slot
+                    draggingItem = d; d.isDragging = true; dragOffsetX = pos.x - d.x; dragOffsetY = pos.y - d.y;
                     let slot = slots.find(s => s.currentItem === d);
                     if (slot) slot.currentItem = null;
                     break;
                 }
             }
         } else if (gameState === 'playing' || gameState === 'menu') {
-            isMouseDown = true; 
-            swipes['mouse'] = []; 
-            addSwipePoint('mouse', pos.x, pos.y); 
+            isMouseDown = true; swipes['mouse'] = []; addSwipePoint('mouse', pos.x, pos.y); 
         }
     }
 
     function handlePointerMove(e) {
         let pos = getPointerPos(e);
-        
         if (gameState === 'playing' && gameMode === 'hard' && draggingItem) {
-            draggingItem.x = pos.x - dragOffsetX;
-            draggingItem.y = pos.y - dragOffsetY;
-        } else if (isMouseDown) {
-            addSwipePoint('mouse', pos.x, pos.y); 
-        }
+            draggingItem.x = pos.x - dragOffsetX; draggingItem.y = pos.y - dragOffsetY;
+        } else if (isMouseDown) { addSwipePoint('mouse', pos.x, pos.y); }
     }
 
     function handlePointerUp(e) {
         if (gameState === 'playing' && gameMode === 'hard' && draggingItem) {
             let snapped = false;
-            // Cek apakah dilepaskan di area slot
             for (let s of slots) {
                 if (Math.hypot(draggingItem.x - s.x, draggingItem.y - s.y) < s.h) {
-                    // Tukar posisi jika slot sudah terisi
                     if (s.currentItem && s.currentItem !== draggingItem) {
-                        s.currentItem.x = s.currentItem.originX;
-                        s.currentItem.y = s.currentItem.originY;
-                        s.currentItem = null;
+                        s.currentItem.x = s.currentItem.originX; s.currentItem.y = s.currentItem.originY; s.currentItem = null;
                     }
-                    s.currentItem = draggingItem;
-                    draggingItem.x = s.x;
-                    draggingItem.y = s.y;
-                    snapped = true;
-                    break;
+                    s.currentItem = draggingItem; draggingItem.x = s.x; draggingItem.y = s.y; snapped = true; break;
                 }
             }
-            
-            // Kembalikan ke posisi awal jika tidak mengenai slot
-            if (!snapped) {
-                draggingItem.x = draggingItem.originX;
-                draggingItem.y = draggingItem.originY;
-            }
-            
-            draggingItem.isDragging = false;
-            draggingItem = null;
-            
+            if (!snapped) { draggingItem.x = draggingItem.originX; draggingItem.y = draggingItem.originY; }
+            draggingItem.isDragging = false; draggingItem = null;
             checkHardModeWin();
-        } else {
-            isMouseDown = false; 
-            delete swipes['mouse']; 
-        }
+        } else { isMouseDown = false; delete swipes['mouse']; }
     }
 
-    // --- SWIPE LOGIC ---
     function addSwipePoint(id, x, y) {
         if (!swipes[id]) swipes[id] = [];
-        swipes[id].push({ x, y });
-        if (swipes[id].length > 8) swipes[id].shift();
-        
+        swipes[id].push({ x, y }); if (swipes[id].length > 8) swipes[id].shift();
         if (swipes[id].length >= 2) {
-            let pt1 = swipes[id][swipes[id].length - 2];
-            let pt2 = swipes[id][swipes[id].length - 1];
-            checkSlice(pt1.x, pt1.y, pt2.x, pt2.y);
+            let pt1 = swipes[id][swipes[id].length - 2]; let pt2 = swipes[id][swipes[id].length - 1]; checkSlice(pt1.x, pt1.y, pt2.x, pt2.y);
         }
     }
 
@@ -1074,24 +1071,17 @@
             for (let btn of menuButtons) {
                 if (btn.sliced) continue;
                 let dist = distToSegment({x: btn.x, y: btn.y}, {x: x1, y: y1}, {x: x2, y: y2});
-                if (dist < Math.max(btn.w, btn.h) / 1.5) {
-                    btn.slice();
-                    break;
-                }
+                if (dist < Math.max(btn.w, btn.h) / 1.5) { btn.slice(); break; }
             }
             return;
         }
-
         if (gameState === 'playing' && gameMode !== 'hard') {
             for (let f of fruits) {
-                if (f.sliced) continue;
-                let dist = distToSegment({x: f.x, y: f.y}, {x: x1, y: y1}, {x: x2, y: y2});
+                if (f.sliced) continue; let dist = distToSegment({x: f.x, y: f.y}, {x: x1, y: y1}, {x: x2, y: y2});
                 if (dist < f.radius) f.slice();
             }
-
             for (let b of bombs) {
-                if (b.sliced) continue;
-                let dist = distToSegment({x: b.x, y: b.y}, {x: x1, y: y1}, {x: x2, y: y2});
+                if (b.sliced) continue; let dist = distToSegment({x: b.x, y: b.y}, {x: x1, y: y1}, {x: x2, y: y2});
                 if (dist < b.radius) b.slice();
             }
         }
@@ -1106,8 +1096,7 @@
 
     function drawSwipes() {
         for (let id in swipes) {
-            let points = swipes[id];
-            if (points.length < 2) continue;
+            let points = swipes[id]; if (points.length < 2) continue;
             ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
             for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
             ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 8;
@@ -1115,33 +1104,14 @@
         }
     }
 
-    // --- EVENTS ATTACHMENT ---
     canvas.addEventListener('mousedown', handlePointerDown);
     canvas.addEventListener('mousemove', handlePointerMove);
     window.addEventListener('mouseup', handlePointerUp);
-    
-    canvas.addEventListener('touchstart', (e) => {
-        if(gameState !== 'playing' && gameState !== 'menu') return; 
-        e.preventDefault();
-        handlePointerDown(e);
-    }, {passive: false});
-    
-    canvas.addEventListener('touchmove', (e) => {
-        if(gameState !== 'playing' && gameState !== 'menu') return; 
-        e.preventDefault();
-        handlePointerMove(e);
-    }, {passive: false});
-    
-    canvas.addEventListener('touchend', (e) => {
-        handlePointerUp(e);
-        for (let t of e.changedTouches) delete swipes[t.identifier];
-    });
-    canvas.addEventListener('touchcancel', (e) => {
-        handlePointerUp(e);
-        for (let t of e.changedTouches) delete swipes[t.identifier];
-    });
+    canvas.addEventListener('touchstart', (e) => { if(gameState !== 'playing' && gameState !== 'menu') return; e.preventDefault(); handlePointerDown(e); }, {passive: false});
+    canvas.addEventListener('touchmove', (e) => { if(gameState !== 'playing' && gameState !== 'menu') return; e.preventDefault(); handlePointerMove(e); }, {passive: false});
+    canvas.addEventListener('touchend', (e) => { handlePointerUp(e); for (let t of e.changedTouches) delete swipes[t.identifier]; });
+    canvas.addEventListener('touchcancel', (e) => { handlePointerUp(e); for (let t of e.changedTouches) delete swipes[t.identifier]; });
 
-    // --- MULAI PERTAMA KALI ---
     resize();
     lastTime = performance.now();
     requestAnimationFrame(gameLoop);
