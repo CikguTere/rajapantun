@@ -69,15 +69,36 @@
         
         /* Custom Scrollbar for Leaderboard */
         .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.5);
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #f59e0b;
+            background: linear-gradient(to bottom, #facc15, #b45309);
             border-radius: 10px;
+            box-shadow: 0 0 10px rgba(234, 179, 8, 0.8);
+        }
+
+        /* Efek garis bercahaya futuristik */
+        .glow-border {
+            position: relative;
+        }
+        .glow-border::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #facc15, #f59e0b, #d97706, #facc15);
+            z-index: -1;
+            filter: blur(8px);
+            border-radius: inherit;
+            opacity: 0.6;
+            animation: pulse 3s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.4; filter: blur(5px); }
+            100% { opacity: 0.8; filter: blur(12px); }
         }
     </style>
 </head>
@@ -96,77 +117,82 @@
     </button>
 
     <!-- Tombol Leaderboard (Hanya muncul di Menu) -->
-    <button id="leaderboardBtn" onclick="window.showLeaderboard()" class="absolute top-4 right-4 z-[100] text-white text-3xl bg-yellow-600/80 border-2 border-yellow-400 w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-sm shadow-lg transition transform hover:scale-110 active:scale-95 cursor-pointer interactive">
+    <button id="leaderboardBtn" onclick="window.showLeaderboard()" class="absolute top-4 right-4 z-[100] text-white text-3xl bg-gradient-to-b from-yellow-400 to-yellow-600 border-2 border-yellow-300 w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-sm shadow-[0_0_15px_rgba(234,179,8,0.6)] transition transform hover:scale-110 active:scale-95 cursor-pointer interactive">
         🏆
     </button>
 
     <!-- Canvas Utama -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Modal Papan Peringkat (Leaderboard) -->
-    <div id="leaderboardModal" class="ui-layer z-[80] hidden bg-black/80">
-        <div class="bg-gray-900 border-4 border-yellow-500 rounded-2xl p-6 w-[95%] md:w-[600px] max-h-[85vh] flex flex-col shadow-2xl interactive">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-3xl text-yellow-400 title-shadow">Papan Peringkat</h3>
-                <button onclick="window.hideLeaderboard()" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+    <!-- Modal Papan Peringkat (Leaderboard Futuristik Mewah) -->
+    <div id="leaderboardModal" class="ui-layer z-[80] hidden bg-black/80 backdrop-blur-sm">
+        <div class="glow-border bg-gradient-to-br from-gray-900 via-black to-gray-800 border border-yellow-500/50 rounded-[2rem] p-8 w-[95%] md:w-[650px] max-h-[85vh] flex flex-col shadow-[0_0_40px_rgba(234,179,8,0.2)] interactive relative overflow-hidden">
+            
+            <!-- Ornamen Dekorasi Kiri Kanan -->
+            <div class="absolute top-0 left-0 w-20 h-20 bg-yellow-500/20 blur-3xl rounded-full"></div>
+            <div class="absolute bottom-0 right-0 w-32 h-32 bg-orange-600/20 blur-3xl rounded-full"></div>
+
+            <div class="flex justify-between items-center mb-6 relative z-10">
+                <h3 class="text-4xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-orange-500 font-black drop-shadow-[0_2px_10px_rgba(234,179,8,0.5)]">LEADERBOARD</h3>
+                <button onclick="window.hideLeaderboard()" class="text-gray-400 hover:text-red-500 transition-colors text-4xl bg-gray-800/50 w-12 h-12 flex items-center justify-center rounded-full border border-gray-700 hover:border-red-500/50 shadow-inner">&times;</button>
             </div>
             
-            <!-- Tabs -->
-            <div class="flex gap-2 mb-4">
-                <button onclick="window.changeLeaderboardTab('Ksatria')" id="tabKsatria" class="flex-1 bg-yellow-600 text-white py-2 rounded-lg font-bold transition">⚔️ Ksatria</button>
-                <button onclick="window.changeLeaderboardTab('Putra Mahkota')" id="tabPutraMahkota" class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2 rounded-lg font-bold transition">👑 P. Mahkota</button>
-                <button onclick="window.changeLeaderboardTab('Raja')" id="tabRaja" class="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2 rounded-lg font-bold transition">👑 Raja</button>
+            <!-- Tabs Futuristik -->
+            <div class="flex gap-2 mb-6 relative z-10">
+                <button onclick="window.changeLeaderboardTab('Ksatria')" id="tabKsatria" class="flex-1 bg-gradient-to-r from-yellow-600 to-yellow-500 text-white py-2.5 rounded-xl font-bold shadow-[0_0_15px_rgba(234,179,8,0.4)] border border-yellow-400 transition transform hover:-translate-y-1">⚔️ Ksatria</button>
+                <button onclick="window.changeLeaderboardTab('Putra Mahkota')" id="tabPutraMahkota" class="flex-1 bg-gray-800/50 border border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-300 py-2.5 rounded-xl font-bold transition transform hover:-translate-y-1">👑 Putra Mahkota</button>
+                <button onclick="window.changeLeaderboardTab('Raja')" id="tabRaja" class="flex-1 bg-gray-800/50 border border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-300 py-2.5 rounded-xl font-bold transition transform hover:-translate-y-1">👑 Raja</button>
             </div>
 
             <!-- List Data -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
-                <table class="w-full text-left text-white font-['Nunito']">
+            <div class="flex-1 overflow-y-auto custom-scrollbar pr-3 relative z-10">
+                <table class="w-full text-left text-white font-['Nunito'] border-separate" style="border-spacing: 0 8px;">
                     <thead>
-                        <tr class="text-gray-400 border-b border-gray-700">
-                            <th class="py-2 w-12 text-center">No</th>
-                            <th class="py-2">Nama & Sekolah</th>
-                            <th class="py-2 text-right">Skor</th>
+                        <tr class="text-gray-400 text-sm uppercase tracking-widest">
+                            <th class="pb-2 w-16 text-center font-bold">Rank</th>
+                            <th class="pb-2 font-bold">Pahlawan</th>
+                            <th class="pb-2 text-right font-bold">Skor</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboardBody">
                         <!-- Data diisi oleh JavaScript -->
-                        <tr><td colspan="3" class="text-center py-4">Memuat data...</td></tr>
+                        <tr><td colspan="3" class="text-center py-6 text-yellow-500 animate-pulse font-bold text-lg">Memuat data dari dimensi server...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Modal Form Lencana (Ksatria / Putra Mahkota / Raja) -->
+    <!-- Modal Form Lencana (Wajib Isi) -->
     <div id="badgeModal" class="ui-layer z-[90] hidden bg-black/90 backdrop-blur-sm">
-        <div class="bg-gradient-to-b from-gray-800 to-gray-900 border-4 border-yellow-500 rounded-3xl p-8 max-w-[90%] md:max-w-md text-center shadow-[0_0_50px_rgba(234,179,8,0.3)] interactive">
-            <div id="badgeIcon" class="text-6xl mb-2 filter drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">⚔️</div>
-            <h3 class="text-3xl text-yellow-400 mb-2 title-shadow">Selamat!</h3>
+        <div class="bg-gradient-to-b from-gray-800 to-gray-900 border-4 border-yellow-500 rounded-3xl p-8 max-w-[90%] md:max-w-md text-center shadow-[0_0_50px_rgba(234,179,8,0.4)] interactive">
+            <div id="badgeIcon" class="text-6xl mb-2 filter drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">⚔️</div>
+            <h3 class="text-3xl text-yellow-400 mb-2 title-shadow uppercase tracking-wider">Selamat!</h3>
             <p id="badgeSubtitle" class="text-white text-lg font-['Nunito'] mb-6">
-                Anda mendapatkan lencana <span id="badgeTierName" class="font-bold text-yellow-300">Ksatria</span> dengan skor <span id="badgeScoreDisplay" class="font-bold text-xl text-green-400">0</span>!
+                Anda mendapatkan lencana <span id="badgeTierName" class="font-bold text-yellow-300 drop-shadow-[0_0_5px_rgba(253,224,71,0.8)]">Ksatria</span> dengan skor akhir <span id="badgeScoreDisplay" class="font-black text-2xl text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.8)]">0</span>!
             </p>
             
-            <div class="flex flex-col gap-4 mb-6">
-                <input type="text" id="playerName" placeholder="Masukkan Nama Anda" class="w-full px-4 py-3 rounded-xl bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-400 focus:outline-none font-['Nunito']">
-                <input type="text" id="playerSchool" placeholder="Asal Sekolah" class="w-full px-4 py-3 rounded-xl bg-gray-700 text-white border-2 border-gray-600 focus:border-yellow-400 focus:outline-none font-['Nunito']">
+            <div class="flex flex-col gap-4 mb-8">
+                <input type="text" id="playerName" placeholder="Ketikkan Nama Anda" class="w-full px-5 py-4 rounded-xl bg-gray-900/50 text-white border-2 border-gray-600 focus:border-yellow-400 focus:shadow-[0_0_15px_rgba(234,179,8,0.3)] focus:outline-none font-['Nunito'] text-lg transition-all placeholder-gray-500 text-center">
+                <input type="text" id="playerSchool" placeholder="Ketikkan Asal Sekolah" class="w-full px-5 py-4 rounded-xl bg-gray-900/50 text-white border-2 border-gray-600 focus:border-yellow-400 focus:shadow-[0_0_15px_rgba(234,179,8,0.3)] focus:outline-none font-['Nunito'] text-lg transition-all placeholder-gray-500 text-center">
             </div>
 
             <div class="flex gap-4">
-                <button onclick="window.skipBadge()" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-3 rounded-xl font-bold transition">Lewati</button>
-                <button onclick="window.submitBadge()" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-green-500/30 transition transform hover:scale-105 active:scale-95">Simpan</button>
+                <!-- Tombol Lewati dihilangkan agar pemain wajib mengisi data -->
+                <button onclick="window.submitBadge()" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white py-4 rounded-xl font-black text-xl shadow-[0_0_20px_rgba(34,197,94,0.5)] transition transform hover:scale-105 active:scale-95 uppercase tracking-widest">Klaim Lencana & Simpan</button>
             </div>
         </div>
     </div>
 
     <!-- Modal Level Terkunci -->
     <div id="lockedModal" class="ui-layer z-[70] hidden bg-black/80">
-        <div class="bg-gray-800 border-4 border-red-500 rounded-2xl p-8 max-w-[90%] md:max-w-md text-center shadow-2xl interactive">
+        <div class="bg-gray-800 border-4 border-red-500 rounded-2xl p-8 max-w-[90%] md:max-w-md text-center shadow-[0_0_40px_rgba(239,68,68,0.3)] interactive">
             <h3 class="text-4xl text-red-500 mb-4 title-shadow">Terkunci!</h3>
             <p id="lockedModalText" class="text-white text-xl font-['Nunito'] mb-6">
                 Dapatkan skor minimal <span class="text-yellow-400 font-bold text-2xl">200</span> di Level Mudah untuk membuka level ini.
             </p>
-            <button onclick="document.getElementById('lockedModal').classList.add('hidden')" class="bg-blue-500 hover:bg-blue-600 text-white text-xl py-3 px-8 rounded-xl font-bold font-['Nunito'] w-full transition transform hover:scale-105 active:scale-95">
-                Oke, Mengerti!
+            <button onclick="document.getElementById('lockedModal').classList.add('hidden')" class="bg-blue-500 hover:bg-blue-400 text-white text-xl py-3 px-8 rounded-xl font-bold font-['Nunito'] w-full shadow-[0_0_15px_rgba(59,130,246,0.5)] transition transform hover:scale-105 active:scale-95">
+                Siap, Laksanakan!
             </button>
         </div>
     </div>
@@ -179,21 +205,18 @@
     <!-- Game Over Screen -->
     <div id="gameOverScreen" class="ui-layer interactive z-50 hidden" style="background-image: url('https://github.com/user-attachments/assets/b7909539-0d15-4536-8a7a-286c487d5fee'); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; background-color: rgba(0,0,0,0.8); background-blend-mode: overlay;">
         <h2 id="gameOverTitle" class="text-6xl md:text-7xl text-white mb-6 title-shadow text-center">GAME OVER</h2>
-        <p id="gameOverScore" class="text-3xl text-yellow-400 mb-8 font-['Nunito'] text-center">Skor: 0</p>
+        <p id="gameOverScore" class="text-4xl text-yellow-400 mb-8 font-['Nunito'] text-center font-black drop-shadow-[0_0_10px_rgba(234,179,8,0.8)]">Skor: 0</p>
         
         <button onclick="window.backToMenu()" class="text-white text-2xl py-4 px-10 rounded-2xl transition transform hover:scale-105 active:scale-95" style="background-image: url('https://private-user-images.githubusercontent.com/217060870/583846776-468cf861-e122-49dd-829b-001add7d8296.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzcxODg3NDksIm5iZiI6MTc3NzE4ODQ0OSwicGF0aCI6Ii8yMTcwNjA4NzAvNTgzODQ2Nzc2LTQ2OGNmODYxLWUxMjItNDlkZC04MjliLTAwMWFkZDdkODI5Ni5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNDI2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDQyNlQwNzI3MjlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT00YzdlY2I4YjZkMDY1MjcyYTY0ZWI3MTkxYjdkZjQ5NjY5YjVkNzRmOWEzZmVjYzhkNGY4MDgwOWI0OWM4MmI0JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZwbmcifQ.5tzzR7grlRSS51w5p1Sd848BFC0XIheGisXTDAhfr24'); background-size: 100% 100%; background-repeat: no-repeat; background-color: transparent; border: none;">
             Kembali ke Menu
         </button>
     </div>
 
-<!-- Ubah script menjadi module untuk Firebase -->
 <script type="module">
-    // --- FIREBASE IMPORTS & SETUP ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Konfigurasi Database Realtime
     let app, auth, db;
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'raja-pantun-app';
     
@@ -206,12 +229,9 @@
 
     try {
         let firebaseConfig;
-        // Prioritaskan database Canvas jika kita mengujinya di sini
         if (typeof __firebase_config !== 'undefined' && __firebase_config) {
             firebaseConfig = JSON.parse(__firebase_config);
         } else {
-            // Gunakan konfigurasi Anda jika dihosting di luar (misal: GitHub Pages)
-            // PASTIKAN Firestore Security Rules diubah menjadi "allow read, write: if true;" untuk tes
             firebaseConfig = {
                 apiKey: "AIzaSyCDvSQBkSbcROL9AHZnhouOC0OgjaTWQfs",
                 authDomain: "raja-pantun.firebaseapp.com",
@@ -227,7 +247,6 @@
             auth = getAuth(app);
             db = getFirestore(app);
 
-            // Auth Rule 3: Tunggu proses Auth secara sinkron sebelum menyentuh Firestore
             const initAuth = async () => {
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -236,13 +255,11 @@
                         await signInAnonymously(auth);
                     }
                 } catch (error) {
-                    console.error("Gagal inisialisasi auth, mencoba login anonim cadangan...", error);
                     await signInAnonymously(auth).catch(e => console.error("Login anonim gagal:", e));
                 }
             };
 
             initAuth().then(() => {
-                // Setup Data Listener (Rule 1 & 2) setelah Auth terverifikasi
                 onAuthStateChanged(auth, (user) => {
                     if (!user) return;
 
@@ -254,7 +271,6 @@
                             if(temp[data.tier]) temp[data.tier].push(data);
                         });
                         
-                        // Sort in memory (Rule 2)
                         temp['Ksatria'].sort((a,b) => b.score - a.score);
                         temp['Putra Mahkota'].sort((a,b) => b.score - a.score);
                         temp['Raja'].sort((a,b) => b.score - a.score);
@@ -262,7 +278,7 @@
                         leaderboardData = temp;
                         renderLeaderboard();
                     }, (error) => {
-                        console.error("Leaderboard read error (pastikan Firestore Security Rules terbuka):", error);
+                        console.error("Leaderboard read error:", error);
                     });
                 });
             });
@@ -271,7 +287,6 @@
         console.warn("Database mode offline (Local only).", e);
     }
 
-    // --- LEADERBOARD UI FUNCTIONS ---
     window.showLeaderboard = () => {
         document.getElementById('leaderboardModal').classList.remove('hidden');
         renderLeaderboard();
@@ -284,9 +299,9 @@
         ['Ksatria', 'Putra Mahkota', 'Raja'].forEach(t => {
             let btn = document.getElementById('tab' + t.replace(/\s/g, ''));
             if(t === tab) {
-                btn.className = "flex-1 bg-yellow-600 text-white py-2 rounded-lg font-bold transition";
+                btn.className = "flex-1 bg-gradient-to-r from-yellow-600 to-yellow-500 text-white py-2.5 rounded-xl font-bold shadow-[0_0_15px_rgba(234,179,8,0.4)] border border-yellow-400 transition transform hover:-translate-y-1";
             } else {
-                btn.className = "flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2 rounded-lg font-bold transition";
+                btn.className = "flex-1 bg-gray-800/50 border border-gray-600 hover:bg-gray-700 hover:border-gray-500 text-gray-300 py-2.5 rounded-xl font-bold transition transform hover:-translate-y-1";
             }
         });
         renderLeaderboard();
@@ -298,39 +313,42 @@
         
         let data = leaderboardData[currentLbTab];
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-gray-400">Belum ada pahlawan di tingkat ini.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-10 text-gray-500 italic">Data kosong. Jadilah yang pertama di level ini!</td></tr>`;
             return;
         }
 
         data.forEach((entry, idx) => {
-            let rankColor = "text-gray-400";
-            if(idx === 0) rankColor = "text-yellow-400 text-xl";
-            else if(idx === 1) rankColor = "text-gray-300 text-lg";
-            else if(idx === 2) rankColor = "text-yellow-600 text-lg";
+            let rankDisplay = idx + 1;
+            let rankColor = "text-gray-400 font-bold";
+            let bgClass = "bg-gray-800/30 hover:bg-gray-700/50 transition-colors duration-300";
+
+            if(idx === 0) { rankColor = "text-yellow-400 text-3xl drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]"; rankDisplay = "🥇"; bgClass = "bg-gradient-to-r from-yellow-500/20 to-transparent"; }
+            else if(idx === 1) { rankColor = "text-gray-300 text-2xl drop-shadow-[0_0_8px_rgba(209,213,219,0.8)]"; rankDisplay = "🥈"; bgClass = "bg-gradient-to-r from-gray-400/20 to-transparent"; }
+            else if(idx === 2) { rankColor = "text-yellow-600 text-2xl drop-shadow-[0_0_8px_rgba(202,138,4,0.8)]"; rankDisplay = "🥉"; bgClass = "bg-gradient-to-r from-orange-600/20 to-transparent"; }
 
             let tr = document.createElement('tr');
-            tr.className = "border-b border-gray-700/50";
+            tr.className = `border-b border-gray-700/50 ${bgClass} rounded-lg`;
+            
             tr.innerHTML = `
-                <td class="py-3 text-center font-bold ${rankColor}">${idx + 1}</td>
-                <td class="py-3">
-                    <div class="font-bold text-white text-lg">${entry.name}</div>
-                    <div class="text-sm text-gray-400">${entry.school}</div>
+                <td class="py-4 text-center ${rankColor} w-16">${rankDisplay}</td>
+                <td class="py-4 px-2">
+                    <div class="font-black text-white text-xl tracking-wide">${entry.name}</div>
+                    <div class="text-xs text-yellow-500 uppercase tracking-widest font-bold mt-1 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span> ${entry.school}</div>
                 </td>
-                <td class="py-3 text-right font-bold text-green-400 text-xl">${entry.score}</td>
+                <td class="py-4 pr-4 text-right font-black text-green-400 text-3xl drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]">${entry.score}</td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // --- FORM BADGE SUBMISSION LOGIC ---
-    let pendingBadgeData = null; // { tier, score }
+    let pendingBadgeData = null;
 
     window.submitBadge = async () => {
         const name = document.getElementById('playerName').value.trim();
         const school = document.getElementById('playerSchool').value.trim();
         
         if(!name || !school) {
-            alert("Harap isi nama dan asal sekolah Anda!");
+            alert("Harap isi nama dan asal sekolah Anda untuk menyimpan skor!");
             return;
         }
 
@@ -346,15 +364,9 @@
                 });
             } catch(e) {
                 console.error("Gagal menyimpan ke database:", e);
-                alert("Penyimpanan gagal. Jika ini di hosting, pastikan Firestore Rules Anda mengizinkan penulisan.");
             }
         }
         
-        document.getElementById('badgeModal').classList.add('hidden');
-        document.getElementById('gameOverScreen').classList.remove('hidden');
-    };
-
-    window.skipBadge = () => {
         document.getElementById('badgeModal').classList.add('hidden');
         document.getElementById('gameOverScreen').classList.remove('hidden');
     };
@@ -368,38 +380,36 @@
             earnedIcon = "⚔️";
         } else if (mode === 'medium' && score >= 100) {
             earnedTier = "Putra Mahkota";
-            earnedIcon = "👑 (Perak)";
+            earnedIcon = "👑";
         } else if (mode === 'hard' && isHardModeWin) {
             earnedTier = "Raja";
-            earnedIcon = "👑 (Emas)";
+            earnedIcon = "👑";
         }
 
         if (earnedTier) {
             pendingBadgeData = { tier: earnedTier, score: score };
             document.getElementById('badgeTierName').innerText = earnedTier;
             document.getElementById('badgeScoreDisplay').innerText = score;
-            document.getElementById('badgeIcon').innerText = earnedIcon === "👑 (Perak)" ? "👑" : earnedIcon === "👑 (Emas)" ? "👑" : earnedIcon;
+            document.getElementById('badgeIcon').innerText = earnedIcon;
             
-            // Warna font penyesuaian tier
             const tierTitle = document.getElementById('badgeTierName');
-            tierTitle.className = "font-bold text-2xl " + 
-                (earnedTier === 'Raja' ? "text-yellow-400" : earnedTier === 'Putra Mahkota' ? "text-gray-300" : "text-orange-400");
+            tierTitle.className = "font-black text-3xl uppercase tracking-widest " + 
+                (earnedTier === 'Raja' ? "text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]" : 
+                 earnedTier === 'Putra Mahkota' ? "text-gray-200 drop-shadow-[0_0_10px_rgba(229,231,235,0.8)]" : "text-orange-400 drop-shadow-[0_0_10px_rgba(2fb,146,60,0.8)]");
 
             document.getElementById('badgeModal').classList.remove('hidden');
-            return true; // Form ditunjukkan
+            return true;
         }
-        return false; // Langsung Game Over biasa
+        return false;
     }
 
 
-    // --- AUDIO SETUP ---
     const swordSound = new Audio('https://github.com/user-attachments/files/27097721/espada-som.mp3');
     const bgMusic = new Audio('https://github.com/user-attachments/files/27098976/0011.Happy.Ukulele.Whistle.-.AndruLeo.Music.mp3');
     bgMusic.loop = true;
     bgMusic.volume = 0.4;
     let isMusicPlaying = false;
 
-    // --- DATA EDUKASI ---
     const RHYME_DATA = [
         { target: "Batu", correct: ["Satu", "Ratu", "Pintu", "Sepatu", "Waktu", "Tentu"], wrong: ["Buku", "Lari", "Makan", "Meja", "Gitar", "Lampu"] },
         { target: "Makan", correct: ["Ikan", "Jalan", "Kawan", "Taman", "Pesan", "Hujan"], wrong: ["Tidur", "Minum", "Baju", "Sepeda", "Kucing", "Pohon"] },
@@ -411,37 +421,29 @@
         { target: "Gitar", correct: ["Pintar", "Bentar", "Lontar", "Getar", "Pudar", "Kekar"], wrong: ["Piano", "Drum", "Suling", "Biola", "Musik", "Lagu"] }
     ];
 
+    // Penambahan Soal Kelima (Total 5 Soal Hard Mode)
     const PANTUN_DATA = [
         { theme: "Teka-teki", lines: ["Kalau tuan bawa keladi", "Bawakan juga si pucuk rebung", "Kalau tuan bijak bestari", "Binatang apa tanduk di hidung?"] },
         { theme: "Jenaka", lines: ["Pohon manggis di tepi rawa", "Tempat kakek tidur beradu", "Sedang menangis nenek tertawa", "Melihat kakek bermain gundu"] },
         { theme: "Nasihat", lines: ["Beli durian di pasar induk", "Rasanya manis dan juga legit", "Ilmu padi makin merunduk", "Jangan sombong sundul ke langit"] },
-        { theme: "Agama", lines: ["Banyak bulan perkara bulan", "Tidak semulia bulan puasa", "Banyak tuhan perkara tuhan", "Tidak semulia Tuhan Yang Esa"] }
+        { theme: "Agama", lines: ["Banyak bulan perkara bulan", "Tidak semulia bulan puasa", "Banyak tuhan perkara tuhan", "Tidak semulia Tuhan Yang Esa"] },
+        { theme: "Persahabatan", lines: ["Bunga melati harum mewangi", "Tumbuh mekar di pekarangan", "Sahabat sejati selalu menemani", "Dalam suka maupun rintangan"] }
     ];
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // --- MUTE BUTTON LOGIC ---
     const muteBtn = document.getElementById('muteBtn');
     muteBtn.addEventListener('click', (e) => {
         if (bgMusic.muted) {
-            bgMusic.muted = false;
-            muteBtn.innerText = "🔊";
-            if (!isMusicPlaying) {
-                bgMusic.play().catch(err => console.log(err));
-                isMusicPlaying = true;
-            }
-        } else {
-            bgMusic.muted = true;
-            muteBtn.innerText = "🔇";
-        }
+            bgMusic.muted = false; muteBtn.innerText = "🔊";
+            if (!isMusicPlaying) { bgMusic.play().catch(err => console.log(err)); isMusicPlaying = true; }
+        } else { bgMusic.muted = true; muteBtn.innerText = "🔇"; }
     });
 
     const startAudio = () => {
         if (!isMusicPlaying && !bgMusic.muted) {
-            bgMusic.play().then(() => {
-                isMusicPlaying = true;
-            }).catch(err => console.log("Autoplay dicegah browser:", err));
+            bgMusic.play().then(() => { isMusicPlaying = true; }).catch(err => console.log("Autoplay dicegah browser:", err));
         }
     };
     startAudio();
@@ -466,16 +468,10 @@
 
     const p1 = { xMin: 0, xMax: 0, score: 0, lives: 3, streak: 0, questionsCompleted: 0, targetWord: "", currentData: null, color: '#3b82f6' };
 
+    // Mendeklarasikan kembali variabel penyimpan skor tertinggi
     let highScoreEasy = parseInt(localStorage.getItem('rajaPantunHighScoreEasy')) || 0;
     let highScoreMedium = parseInt(localStorage.getItem('rajaPantunHighScoreMedium')) || 0;
     let highScoreHard = parseInt(localStorage.getItem('rajaPantunHighScoreHard')) || 0;
-
-    const FRUIT_COLORS = [
-        ['#ff4b2b', '#ff416c'],
-        ['#fceabb', '#f8b500'],
-        ['#56ab2f', '#a8e063'],
-        ['#8E2DE2', '#4A00E0'],
-    ];
 
     let currentPantunIndex = 0;
     let hardModeTimer = 60;
@@ -535,14 +531,12 @@
             if (this.mode === 'medium' && highScoreEasy < 200) {
                 document.getElementById('lockedModalText').innerHTML = `Dapatkan skor minimal <span class="text-yellow-400 font-bold text-2xl">200</span> di Level Mudah untuk membuka level ini.`;
                 document.getElementById('lockedModal').classList.remove('hidden');
-                swipes = {}; 
-                return;
+                swipes = {}; return;
             }
             if (this.mode === 'hard' && highScoreMedium < 100) {
                 document.getElementById('lockedModalText').innerHTML = `Dapatkan skor minimal <span class="text-yellow-400 font-bold text-2xl">100</span> di Level Sedang untuk membuka level ini.`;
                 document.getElementById('lockedModal').classList.remove('hidden');
-                swipes = {};
-                return;
+                swipes = {}; return;
             }
 
             this.sliced = true;
@@ -608,10 +602,7 @@
 
     function startGame() {
         gameState = 'playing';
-        p1.score = 0; 
-        p1.lives = 3;
-        p1.streak = 0;
-        p1.questionsCompleted = 0;
+        p1.score = 0; p1.lives = 3; p1.streak = 0; p1.questionsCompleted = 0;
         
         if (gameMode === 'hard') {
             currentPantunIndex = 0;
@@ -629,7 +620,6 @@
         slots = []; draggables = []; draggingItem = null;
         
         if(currentPantunIndex >= PANTUN_DATA.length) {
-            // Trigger Menang Hard Mode (4 Soal Benar)
             gameOver(true); 
             return;
         }
@@ -736,20 +726,16 @@
             this.isCorrect = Math.random() > 0.4; 
             const wordList = this.isCorrect ? this.player.currentData.correct : this.player.currentData.wrong;
             this.word = wordList[Math.floor(Math.random() * wordList.length)];
-            
             this.radius = window.innerWidth < 768 ? 35 : 45;
             let zoneWidth = (this.player.xMax - this.player.xMin) / totalZones;
             let zoneStartX = this.player.xMin + (zoneIndex * zoneWidth);
             let safeSpace = Math.max(0, zoneWidth - (this.radius * 2));
-            
             this.x = zoneStartX + this.radius + (Math.random() * safeSpace);
             this.y = height + this.radius;
-            
             const centerX = (this.player.xMin + this.player.xMax) / 2;
             this.vx = (centerX - this.x) * 0.01 + (Math.random() - 0.5) * 1.5;
             this.vy = -(height * 0.012) - Math.random() * (height * 0.002) * difficultyMultiplier;
             this.gravity = height * 0.00018;
-            
             this.rotation = 0; this.vRot = (Math.random() - 0.5) * 0.06;
             this.sliced = false; this.halves = [];
             const colorPair = FRUIT_COLORS[Math.floor(Math.random() * FRUIT_COLORS.length)];
@@ -787,7 +773,6 @@
                 });
                 return;
             }
-
             ctx.save(); ctx.translate(this.x, this.y); ctx.save(); ctx.rotate(this.rotation);
             ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
             const grad = ctx.createRadialGradient(-this.radius/3, -this.radius/3, this.radius/5, 0, 0, this.radius);
@@ -925,10 +910,7 @@
             highScoreHard = p1.score; localStorage.setItem('rajaPantunHighScoreHard', highScoreHard);
         }
 
-        // Cek apakah pemain berhak mendapat lencana
         let isGettingBadge = processBadgeRewards(gameMode, p1.score, isHardModeWin);
-        
-        // Jika tidak dapat lencana, langsung tampilkan layar game over biasa
         if (!isGettingBadge) {
             document.getElementById('gameOverScreen').classList.remove('hidden');
         }
@@ -1111,30 +1093,17 @@
         }
     }
 
-    // Fungsi untuk mode Layar Penuh (Fullscreen)
     window.toggleFullScreen = () => {
         if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
-            // Masuk layar penuh
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.msRequestFullscreen) {
-                document.documentElement.msRequestFullscreen();
-            } else if (document.documentElement.mozRequestFullScreen) {
-                document.documentElement.mozRequestFullScreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-            }
+            if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen(); } 
+            else if (document.documentElement.msRequestFullscreen) { document.documentElement.msRequestFullscreen(); } 
+            else if (document.documentElement.mozRequestFullScreen) { document.documentElement.mozRequestFullScreen(); } 
+            else if (document.documentElement.webkitRequestFullscreen) { document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT); }
         } else {
-            // Keluar layar penuh
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
+            if (document.exitFullscreen) { document.exitFullscreen(); } 
+            else if (document.msExitFullscreen) { document.msExitFullscreen(); } 
+            else if (document.mozCancelFullScreen) { document.mozCancelFullScreen(); } 
+            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
         }
     };
 
