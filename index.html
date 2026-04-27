@@ -178,7 +178,6 @@
             </div>
 
             <div class="flex gap-4">
-                <!-- Tombol Lewati dihilangkan agar pemain wajib mengisi data -->
                 <button onclick="window.submitBadge()" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white py-4 rounded-xl font-black text-xl shadow-[0_0_20px_rgba(34,197,94,0.5)] transition transform hover:scale-105 active:scale-95 uppercase tracking-widest">Klaim Lencana & Simpan</button>
             </div>
         </div>
@@ -421,7 +420,6 @@
         { target: "Gitar", correct: ["Pintar", "Bentar", "Lontar", "Getar", "Pudar", "Kekar"], wrong: ["Piano", "Drum", "Suling", "Biola", "Musik", "Lagu"] }
     ];
 
-    // Penambahan Soal Kelima (Total 5 Soal Hard Mode)
     const PANTUN_DATA = [
         { theme: "Teka-teki", lines: ["Kalau tuan bawa keladi", "Bawakan juga si pucuk rebung", "Kalau tuan bijak bestari", "Binatang apa tanduk di hidung?"] },
         { theme: "Jenaka", lines: ["Pohon manggis di tepi rawa", "Tempat kakek tidur beradu", "Sedang menangis nenek tertawa", "Melihat kakek bermain gundu"] },
@@ -468,7 +466,13 @@
 
     const p1 = { xMin: 0, xMax: 0, score: 0, lives: 3, streak: 0, questionsCompleted: 0, targetWord: "", currentData: null, color: '#3b82f6' };
 
-    // Mendeklarasikan kembali variabel penyimpan skor tertinggi
+    const FRUIT_COLORS = [
+        ['#ff4b2b', '#ff416c'],
+        ['#fceabb', '#f8b500'],
+        ['#56ab2f', '#a8e063'],
+        ['#8E2DE2', '#4A00E0'],
+    ];
+
     let highScoreEasy = parseInt(localStorage.getItem('rajaPantunHighScoreEasy')) || 0;
     let highScoreMedium = parseInt(localStorage.getItem('rajaPantunHighScoreMedium')) || 0;
     let highScoreHard = parseInt(localStorage.getItem('rajaPantunHighScoreHard')) || 0;
@@ -992,8 +996,12 @@
         ctx.fillStyle = 'white'; ctx.font = `bold ${fontSizeTitle}px Nunito`; ctx.textAlign = 'left'; 
         ctx.fillText(`Skor: ${p1.score}`, 20, 20);
         ctx.fillStyle = '#f59e0b';
+        
         let targetStreak = gameMode === 'medium' ? 5 : 10;
-        let soalTeks = gameMode === 'medium' ? ` | Soal: ${p1.questionsCompleted + 1}/3` : '';
+        let soalTeks = '';
+        if (gameMode === 'medium') soalTeks = ` | Soal: ${p1.questionsCompleted + 1}/3`;
+        else if (gameMode === 'single') soalTeks = ` | Soal: ${p1.questionsCompleted + 1}`;
+        
         ctx.fillText(`Combo: ${p1.streak}/${targetStreak}${soalTeks}`, 20, 100);
         ctx.fillStyle = '#ef4444';
         for(let i=0; i<3; i++) ctx.fillText(i < p1.lives ? "❤️" : "🖤", 20 + (i * 35), 60);
